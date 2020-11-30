@@ -72,7 +72,7 @@ class Animate_celestial_objects():
         self.planets.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'planet1') )
         self.planets.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.planets[0].mass/150), 0.1], 'planet2') )
         self.planets.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.planets[0].mass/400)+1, -1], 'planet3') )
-        self.planets.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'planet4') )
+        self.planets.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'planet4') )
 
         self.planets_colors = [planet.color for planet in self.planets]
         self.dropdown_list += self.planets_colors
@@ -138,14 +138,13 @@ class Animate_celestial_objects():
 
         self.coordsCOMNew = self.get_coords_com()
         self.set_deltas(delta_t)
-        for planet in self.planets:
-            planet.draw_acceleration_arrow(correction=self.correction_acceleration)
-            planet.draw_velocity_arrow(correction=self.correction_velocity )
 
         # deque(map(self.move_object, self.planets))
         for planet in self.planets:
             change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
             planet.move_object(change)
+            planet.draw_acceleration_arrow(correction=self.correction_acceleration)
+            planet.draw_velocity_arrow(correction=self.correction_velocity )
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
