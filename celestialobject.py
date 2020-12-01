@@ -9,6 +9,7 @@ import random
 import string
 import tkinter as tk
 import math
+from numba import jit
 # import webcolors
 
 class celestialobject:
@@ -35,6 +36,7 @@ class celestialobject:
         self.velocity_arrow = canvas.create_line(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], arrow=tk.LAST, fill=self.color)
 
     @classmethod
+    @jit
     def set_force_2_celestialobjects(cls, celestialobject_1, celestialobject_2, G, alpha=2):
         distance = celestialobject_2.position -celestialobject_1.position
         F_12 = G *celestialobject_1.mass * celestialobject_2.mass /  np.linalg.norm(distance)**(alpha+1) * distance
@@ -59,27 +61,32 @@ class celestialobject:
     def get_phi(self):
         return self.angle_between(self.acceleration, self.velocity)
 
+    @jit
     def new_state_planet(self, delta_t):
         self.acceleration = self.force / self.mass
         self.velocity += self.acceleration*delta_t
         self.position += self.velocity*delta_t
 
+    @jit
     def draw_acceleration_arrow(self, correction=np.array([0,0]).astype(np.double), factor = 140):
         start_point = self.get_center_oval()
         end_point = start_point + (self.acceleration + correction) * factor
         # print(start_point, (start_point + self.acceleration), end_point)
         self.canvas.coords(self.force_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
+    @jit
     def draw_velocity_arrow(self, correction=np.array([0,0]).astype(np.double), factor = 40):
         start_point = self.get_center_oval()
         end_point = start_point + (self.velocity + correction) * factor
         self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
     @classmethod
+    @jit
     def unit_vector(self, vector):
         return vector / np.linalg.norm(vector)
 
     @classmethod
+    @jit
     def angle_between(self, v1, v2):
         v1_u = self.unit_vector(v1)
         v2_u = self.unit_vector(v2)
