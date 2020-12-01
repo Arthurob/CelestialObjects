@@ -85,6 +85,7 @@ class Animate_celestial_objects():
         self.coordsCOM = self.get_coords_com()
         self.COM = self.canvas.create_line(self.coordsCOM[0]-5, self.coordsCOM[1]-5, self.coordsCOM[0]+5, self.coordsCOM[1]+5, self.coordsCOM[0], self.coordsCOM[1], self.coordsCOM[0]-5, self.coordsCOM[1]+5, self.coordsCOM[0]+5, self.coordsCOM[1]-5, fill='white')
         self.next_step()
+        print(self.planets[2].get_phi())
 
     def get_coords_com(self):
         return sum([planet.mass*planet.position for planet in self.planets]) / sum([planet.mass for planet in self.planets])
