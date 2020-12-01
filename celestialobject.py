@@ -57,7 +57,7 @@ class celestialobject:
         return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2])
 
     def get_phi(self):
-        return np.outer(self.acceleration, self.velocity)
+        return np.outer(self.acceleration, self.velocity)/
 
     def new_state_planet(self, delta_t):
         self.acceleration = self.force / self.mass
@@ -75,3 +75,12 @@ class celestialobject:
         end_point = start_point + (self.velocity + correction) * factor
         self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
+    @classmethod
+    def unit_vector(vector):
+    return vector / np.linalg.norm(vector)
+
+    @classmethod
+    def angle_between(v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
