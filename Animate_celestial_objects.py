@@ -231,12 +231,6 @@ class Animate_celestial_objects():
             self.frame_controls, from_=-20, to=20, resolution=.001, orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(column=0, row=3, sticky='w')
 
-        self.button_shuffle_COM = tk.Button(self.frame_controls, text="COM")
-        self.button_shuffle_COM.configure(command=self.pressed_shuffle_COM)
-        self.button_shuffle_COM.configure(relief=tk.SUNKEN)
-        self.button_shuffle_COM.grid(column=0, row=4, sticky='w')
-        self.shuffle_COM = True
-
         # dropdown of center
         self.dropdown_center = tk.OptionMenu(self.frame_controls, self.center_CO, *self.dropdown_list )
         self.dropdown_center.configure(width=20)
@@ -256,16 +250,6 @@ class Animate_celestial_objects():
 
         # self.label_COM = tk.Label(self.frame_controls, text = '', width = 20)
         # self.label_COM.grid(column=0, row=7, sticky='w')
-
-    def pressed_shuffle_COM(self):
-        if self.shuffle_COM:
-            self.button_shuffle_COM.configure(relief=tk.RAISED)
-            self.shuffle_COM = False
-            print(self.shuffle_COM)
-        else:
-            self.button_shuffle_COM.configure(relief=tk.SUNKEN)
-            self.shuffle_COM = True
-            print(self.shuffle_COM)
 
 
 
