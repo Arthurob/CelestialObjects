@@ -19,7 +19,7 @@ class Animate_celestial_objects():
         self.start()
 
 
-
+#  20 s using
 
     def start(self):
         self.root = tk.Tk()
@@ -116,14 +116,14 @@ class Animate_celestial_objects():
         if option == 'COM':
             self.Delta = self.coordsCOMNew - self.coordsCOM
             if delta_t == 0:
-                self.correction_velocity = np.array([0,0]).astype(np.double)
+                self.correction_velocity = np.zeros((2,))
             else:
                 self.correction_velocity = -self.Delta / delta_t
-            self.correction_acceleration = np.array([0,0]).astype(np.double)
+            self.correction_acceleration = np.zeros((2,))
         elif option == 'Absolute':
-            self.Delta = np.array([0,0]).astype(np.double)
-            self.correction_velocity = np.array([0,0]).astype(np.double)
-            self.correction_acceleration = np.array([0,0]).astype(np.double)
+            self.Delta = np.zeros((2,))
+            self.correction_velocity = np.zeros((2,))
+            self.correction_acceleration = np.zeros((2,))
         else:
             planet = self.color_planet[option]
             self.Delta = planet.velocity * delta_t
@@ -220,15 +220,15 @@ class Animate_celestial_objects():
         self.delay_slider.grid(column=3, row=0, sticky='w')
         # G
         self.G_slider = tk.Scale(
-            self.frame_controls, from_=0, to=100, resolution=.5, orient=tk.HORIZONTAL, variable=self.G)
+            self.frame_controls, from_=-50, to=50, length = 200, tickinterval=10, resolution= 1, orient=tk.HORIZONTAL, variable=self.G)
         self.G_slider.grid(column=0, row=1, sticky='w')
         # alpha
         self.alpha_slider = tk.Scale(
-            self.frame_controls, from_=-3, to=3, resolution=.01, orient=tk.HORIZONTAL, variable=self.alpha)
+            self.frame_controls, from_=-3, to=3, length = 200, tickinterval=.1, resolution=.01, orient=tk.HORIZONTAL, variable=self.alpha)
         self.alpha_slider.grid(column=0, row=2, sticky='w')
         # delta_t
         self.Delta_t_slider = tk.Scale(
-            self.frame_controls, from_=-20, to=20, resolution=.001, orient=tk.HORIZONTAL, variable=self.Delta_t)
+            self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.01, orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(column=0, row=3, sticky='w')
 
         # dropdown of center
