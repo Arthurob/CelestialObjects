@@ -62,35 +62,35 @@ class celestialobject:
         return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2], dtype = np.double)
 
     def get_phi(self):
-        return self.angle_between(self.acceleration, self.velocity)
+        return angle_between(self.acceleration, self.velocity)
 
     def new_state_planet(self, delta_t):
         self.acceleration = self.force / self.mass
         self.velocity += self.acceleration*delta_t
         self.position += self.velocity*delta_t
 
-    def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 140):
+    def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 160):
         start_point = self.canvas_position
         end_point = start_point + (self.acceleration + correction) * factor
         # print(start_point, (start_point + self.acceleration), end_point)
         self.canvas.coords(self.force_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
-    def draw_velocity_arrow(self, correction=np.zeros((2,)), factor = 40):
+    def draw_velocity_arrow(self, correction=np.zeros((2,)), factor = 30):
         start_point = self.canvas_position
         end_point = start_point + (self.velocity + correction) * factor
         self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
-    @classmethod
-    def unit_vector(self, vector):
-        return vector / np.linalg.norm(vector)
 
-    @classmethod
-    def angle_between(self, v1, v2):
-        v1_u = self.unit_vector(v1)
-        v2_u = self.unit_vector(v2)
-        return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+def unit_vector(vector):
+    return vector / norm(vector)
 
-@nb.njit(fastmath=True)
+
+def angle_between( v1, v2):
+    v1_u = unit_vector(v1)
+    v2_u = unit_vector(v2)
+    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+
+# @nb.njit(fastmath=True)
 def norm(l):
     s = 0.
     for i in range(l.shape[0]):

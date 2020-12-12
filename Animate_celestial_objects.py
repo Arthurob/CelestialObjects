@@ -224,11 +224,11 @@ class Animate_celestial_objects():
         self.G_slider.grid(column=0, row=1, sticky='w')
         # alpha
         self.alpha_slider = tk.Scale(
-            self.frame_controls, from_=-3, to=3, length = 200, tickinterval=.1, resolution=.01, orient=tk.HORIZONTAL, variable=self.alpha)
+            self.frame_controls, from_=-3, to=3, length = 200, tickinterval=1, resolution=.01, orient=tk.HORIZONTAL, variable=self.alpha)
         self.alpha_slider.grid(column=0, row=2, sticky='w')
         # delta_t
         self.Delta_t_slider = tk.Scale(
-            self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.01, orient=tk.HORIZONTAL, variable=self.Delta_t)
+            self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.1, orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(column=0, row=3, sticky='w')
 
         # dropdown of center
