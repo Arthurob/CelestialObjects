@@ -46,6 +46,7 @@ class Animate_celestial_objects():
         self.dropdown_list = ['COM','Absolute']
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
+        self.arrowsOn = True
 
         self.init_UI()
         self.initialise_planets()
@@ -231,10 +232,22 @@ class Animate_celestial_objects():
             self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.1, orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(column=0, row=3, sticky='w')
 
+
         # dropdown of center
         self.dropdown_center = tk.OptionMenu(self.frame_controls, self.center_CO, *self.dropdown_list )
         self.dropdown_center.configure(width=20)
-        self.dropdown_center.grid(column=0, row=5, sticky='w')
+        self.dropdown_center.grid(column=0, row=4, sticky='w')
+
+
+        #Disable / enable arrows
+        self.button_shuffle_arrow_speed =  tk.Radiobutton(self.frame_controls, text="speed arrow", value=True, variable=self.arrowsOn)
+        self.button_shuffle_arrows_force =  tk.Radiobutton(self.frame_controls, text="force arrows", value=True, variable=self.arrowsOn)
+        # self.button_shuffle_arrows = tk.Button(self.frame_controls, text="COM")
+        # self.button_shuffle_arrows.configure(command=self.pressed_shuffle_COM)
+        # self.button_shuffle_arrows.configure(relief=tk.SUNKEN)
+        self.button_shuffle_arrow_speed.grid(column=0, row=5, sticky='w')
+        self.button_shuffle_arrow_forec.grid(column=0, row=6, sticky='w')
+        # self.shuffle_COM = True
         # information on the bodies
 
         # planet 1
