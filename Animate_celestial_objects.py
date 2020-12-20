@@ -19,14 +19,14 @@ class Animate_celestial_objects():
         self.start()
 
 
-
+#  20 s using
 
     def start(self):
         self.root = tk.Tk()
         self.width = self.root.winfo_screenwidth()
         self.height = self.root.winfo_screenheight()
         # self.root.minsize(width=str(self.width), height=str(self.height))
-        self.root.geometry("900x900")
+        self.root.geometry("1000x1000")
         # self.minsize(1000,800)
         # self.root.geometry("1150x800")
         # self.root.attributes('-fullscreen', True)
@@ -36,8 +36,8 @@ class Animate_celestial_objects():
         self.alpha = tk.DoubleVar()
         self.alpha.set(2)
         self.Delta_t = tk.DoubleVar()
-        self.Delta_t.set(.125)
-        self.G = tk.DoubleVar()
+        self.Delta_t.set(.1)
+        self.G = tk.IntVar()
         self.G.set(10)
         self.zoom_factor = .05
         self.current_zoom_factor = 1
@@ -46,6 +46,10 @@ class Animate_celestial_objects():
         self.dropdown_list = ['COM','Absolute']
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
+        self.arrow_factor_velocity = tk.IntVar()
+        self.arrow_factor_velocity.set(30)
+        self.arrow_factor_acceleration = tk.IntVar()
+        self.arrow_factor_acceleration.set(180)
 
         self.init_UI()
         self.initialise_planets()
@@ -59,17 +63,17 @@ class Animate_celestial_objects():
 
 
     def initialise_planets(self):
+        G = self.G.get()
         # self.planets.append( co.celestialobject(11, 'red', self.canvas, self.center, [0., 0.], 'planet1') )
+        self.planets.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'planet1') )
         # self.planets.append( co.celestialobject(400, 'red', self.canvas, self.center, [0., 0.], 'planet1') )
         # self.planets.append( co.celestialobject(11, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(self.G.get()*self.planets[0].mass/150), 0.], 'planet2') )
-        # self.planets.append( co.celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(self.G.get()*self.planets[0].mass/150), 0.], 'planet3') )
+        # self.planets.append( co.celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(G*self.planets[0].mass/150), 0.], 'planet3') )
         # # self.planets.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [1, 0.1], 'planet4') )
         # self.planets.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'planet4') )
-        # self.planets.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'planet5') )
+        self.planets.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'planet5') )
         # self.planets.append( co.celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'planet6') )
-        # self.planets.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [0, 1], 'planetX') )
-        G = self.G.get()
-        self.planets.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'planet1') )
+        self.planets.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'planetX') )
         self.planets.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.planets[0].mass/150), 0.1], 'planet2') )
         self.planets.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.planets[0].mass/400)+1, -1], 'planet3') )
         self.planets.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'planet4') )
@@ -109,21 +113,21 @@ class Animate_celestial_objects():
             planet.reset_force()
         for i in range(len(self.planets)-1):
             for j in range(i+1, len(self.planets)):
-                co.celestialobject.set_force_2_celestialobjects(self.planets[i], self.planets[j], G, alpha)
+                co.set_force_2_celestialobjects(self.planets[i], self.planets[j], G, alpha)
 
     def set_deltas(self, delta_t):
         option = self.center_CO.get()
         if option == 'COM':
             self.Delta = self.coordsCOMNew - self.coordsCOM
             if delta_t == 0:
-                self.correction_velocity = np.array([0,0]).astype(np.double)
+                self.correction_velocity = np.zeros((2,))
             else:
                 self.correction_velocity = -self.Delta / delta_t
-            self.correction_acceleration = np.array([0,0]).astype(np.double)
+            self.correction_acceleration = np.zeros((2,))
         elif option == 'Absolute':
-            self.Delta = np.array([0,0]).astype(np.double)
-            self.correction_velocity = np.array([0,0]).astype(np.double)
-            self.correction_acceleration = np.array([0,0]).astype(np.double)
+            self.Delta = np.zeros((2,))
+            self.correction_velocity = np.zeros((2,))
+            self.correction_acceleration = np.zeros((2,))
         else:
             planet = self.color_planet[option]
             self.Delta = planet.velocity * delta_t
@@ -144,8 +148,8 @@ class Animate_celestial_objects():
         for planet in self.planets:
             change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
             planet.move_object(change)
-            planet.draw_acceleration_arrow(correction=self.correction_acceleration)
-            planet.draw_velocity_arrow(correction=self.correction_velocity )
+            planet.draw_acceleration_arrow(correction=self.correction_acceleration, factor=self.arrow_factor_acceleration.get())
+            planet.draw_velocity_arrow(correction=self.correction_velocity, factor=self.arrow_factor_velocity.get() )
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
@@ -220,21 +224,39 @@ class Animate_celestial_objects():
         self.delay_slider.grid(column=3, row=0, sticky='w')
         # G
         self.G_slider = tk.Scale(
-            self.frame_controls, from_=0, to=100, resolution=.5, orient=tk.HORIZONTAL, variable=self.G)
+            self.frame_controls, from_=-50, to=50, length = 200, tickinterval=10, resolution= 1,
+            orient=tk.HORIZONTAL, variable=self.G)
         self.G_slider.grid(column=0, row=1, sticky='w')
         # alpha
         self.alpha_slider = tk.Scale(
-            self.frame_controls, from_=-3, to=3, resolution=.01, orient=tk.HORIZONTAL, variable=self.alpha)
+            self.frame_controls, from_=-3, to=3, length = 200, tickinterval=1, resolution=.01,
+            orient=tk.HORIZONTAL, variable=self.alpha)
         self.alpha_slider.grid(column=0, row=2, sticky='w')
         # delta_t
         self.Delta_t_slider = tk.Scale(
-            self.frame_controls, from_=-20, to=20, resolution=.001, orient=tk.HORIZONTAL, variable=self.Delta_t)
+            self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.1,
+            orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(column=0, row=3, sticky='w')
+
 
         # dropdown of center
         self.dropdown_center = tk.OptionMenu(self.frame_controls, self.center_CO, *self.dropdown_list )
         self.dropdown_center.configure(width=20)
-        self.dropdown_center.grid(column=0, row=5, sticky='w')
+        self.dropdown_center.grid(column=0, row=4, sticky='w')
+
+
+        # arrow lengths
+        self.arrow_factor_velocity_slider = tk.Scale(
+            self.frame_controls, from_=0, to=50, length = 200, tickinterval=10, resolution=1,
+            orient=tk.HORIZONTAL, variable=self.arrow_factor_velocity)
+        self.arrow_factor_velocity_slider.grid(column=0, row=5, sticky='w')
+        # delta_t
+        self.arrow_factor_acceleration_slider = tk.Scale(
+            self.frame_controls, from_=0, to=300, length = 200, tickinterval=30, resolution=5,
+            orient=tk.HORIZONTAL, variable=self.arrow_factor_acceleration)
+        self.arrow_factor_acceleration_slider.grid(column=0, row=6, sticky='w')
+
+        # self.shuffle_COM = True
         # information on the bodies
 
         # planet 1
