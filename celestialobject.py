@@ -38,13 +38,6 @@ class celestialobject:
 
 
 
-    @classmethod
-    def set_force_2_celestialobjects(cls, celestialobject_1, celestialobject_2, G, alpha=2):
-        distance = celestialobject_2.position - celestialobject_1.position
-        # F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  np.sqrt(distance[0]*distance[0]+distance[1]*distance[1])**(alpha+1) * distance
-        F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  norm(distance)**(alpha+1) * distance
-        celestialobject_1.force = celestialobject_1.force + F_12
-        celestialobject_2.force = celestialobject_2.force - F_12
 
     def reset_force(self):
         self.force = np.zeros((2,))
@@ -70,16 +63,25 @@ class celestialobject:
         self.position += self.velocity*delta_t
 
     def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 160):
-        start_point = self.canvas_position
-        end_point = start_point + (self.acceleration + correction) * factor
-        # print(start_point, (start_point + self.acceleration), end_point)
-        self.canvas.coords(self.force_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
+        # if factor != 0:
+            start_point = self.canvas_position
+            end_point = start_point + (self.acceleration + correction) * factor
+            # print(start_point, (start_point + self.acceleration), end_point)
+            self.canvas.coords(self.force_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
     def draw_velocity_arrow(self, correction=np.zeros((2,)), factor = 30):
-        start_point = self.canvas_position
-        end_point = start_point + (self.velocity + correction) * factor
-        self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
+        # if factor != 0:
+            start_point = self.canvas_position
+            end_point = start_point + (self.velocity + correction) * factor
+            self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
+
+def set_force_2_celestialobjects(celestialobject_1, celestialobject_2, G, alpha=2):
+    distance = celestialobject_2.position - celestialobject_1.position
+    # F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  np.sqrt(distance[0]*distance[0]+distance[1]*distance[1])**(alpha+1) * distance
+    F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  norm(distance)**(alpha+1) * distance
+    celestialobject_1.force = celestialobject_1.force + F_12
+    celestialobject_2.force = celestialobject_2.force - F_12
 
 def unit_vector(vector):
     return vector / norm(vector)
