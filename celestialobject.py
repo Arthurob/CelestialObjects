@@ -39,6 +39,7 @@ class celestialobject:
         # self.maxsize
         self.speed_history = []
         self.acceleration_history = []
+        self.phi_history = []
 
 
 
@@ -71,9 +72,9 @@ class celestialobject:
         self.velocity += self.acceleration*delta_t
         self.position += self.velocity*delta_t
         if self.keep_history:
-
             self.speed_history.append(self.get_speed())
             self.acceleration_history.append(self.get_acceleration())
+            self.phi_history.append(self.get_phi())
 
     def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 160):
         # if factor != 0:
