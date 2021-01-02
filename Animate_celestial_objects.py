@@ -168,15 +168,15 @@ class Animate_celestial_objects():
             planet.draw_velocity_arrow(correction=self.correction_velocity,
                                        factor=self.arrow_factor_velocity.get() )
             self.plot_speed.plot(
-                self.time_list[-min(length_list, 3000):],
-                planet.speed_history[-min(length_list, 3000):], color=planet.color)
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.speed_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
 
             self.plot_acceleration.plot(
-                self.time_list[-min(length_list, 3000):],
-                planet.acceleration_history[-min(length_list, 3000):], color=planet.color)
-            # self.plot_phi.plot(
-            #     self.time_list[-min(length_list, 3000):],
-            #     planet.phi_history[-min(length_list, 3000):], color=planet.color)
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.acceleration_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
+            self.plot_phi.plot(
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.phi_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
         self.canvas_graph_speed.draw()
         self.canvas_graph_acceleration.draw()
         self.canvas_graph_phi.draw()
@@ -370,7 +370,7 @@ class Animate_celestial_objects():
         self.running = True
         self.stop = False
 
-
+MAX_PLOTLENGTH = 3000
 animation = Animate_celestial_objects()
 
 """
