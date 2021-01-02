@@ -4,12 +4,19 @@ Created on Sun Oct 25 15:32:21 2020
 
 @author: Arthur
 """
-
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 import tkinter as tk
+import tkinter.font as tkFont
+# from tkinter import ttk
 import math
 import celestialobject as co
 import numpy as np
 import time
+import random
 
 class Animate_celestial_objects():
 
@@ -50,6 +57,8 @@ class Animate_celestial_objects():
         self.arrow_factor_velocity.set(30)
         self.arrow_factor_acceleration = tk.IntVar()
         self.arrow_factor_acceleration.set(180)
+        self.time_list = []
+        self.time = 0
 
         self.init_UI()
         self.initialise_planets()
@@ -74,6 +83,7 @@ class Animate_celestial_objects():
         self.planets.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'planet5') )
         # self.planets.append( co.celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'planet6') )
         self.planets.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'planetX') )
+        self.planets.append( co.celestialobject(10, 'gold', self.canvas, [500+60, 1000], [-5.1,1 + math.sqrt(G*250/60)], 'planetXMoon'))
         self.planets.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.planets[0].mass/150), 0.1], 'planet2') )
         self.planets.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.planets[0].mass/400)+1, -1], 'planet3') )
         self.planets.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'planet4') )
@@ -138,6 +148,8 @@ class Animate_celestial_objects():
         self.calculate_forces()
         # deque(map(self.new_state_planets, self.planets))
         delta_t = self.Delta_t.get()
+        self.time += delta_t
+        self.time_list.append(self.time)
         for planet in self.planets:
             planet.new_state_planet(delta_t)
 
@@ -145,14 +157,34 @@ class Animate_celestial_objects():
         self.set_deltas(delta_t)
 
         # deque(map(self.move_object, self.planets))
+        self.plot_speed.clear()
+        self.plot_acceleration.clear()
+        length_list = len(self.time_list)
         for planet in self.planets:
             change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
             planet.move_object(change)
-            planet.draw_acceleration_arrow(correction=self.correction_acceleration, factor=self.arrow_factor_acceleration.get())
-            planet.draw_velocity_arrow(correction=self.correction_velocity, factor=self.arrow_factor_velocity.get() )
+            planet.draw_acceleration_arrow(correction=self.correction_acceleration,
+                                           factor=self.arrow_factor_acceleration.get())
+            planet.draw_velocity_arrow(correction=self.correction_velocity,
+                                       factor=self.arrow_factor_velocity.get() )
+            self.plot_speed.plot(
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.speed_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
+
+            self.plot_acceleration.plot(
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.acceleration_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
+            self.plot_phi.plot(
+                self.time_list[-min(length_list, MAX_PLOTLENGTH):],
+                planet.phi_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
+        self.canvas_graph_speed.draw()
+        self.canvas_graph_acceleration.draw()
+        self.canvas_graph_phi.draw()
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
+
+
 
     def init_UI(self):
 
@@ -209,69 +241,102 @@ class Animate_celestial_objects():
         self.canvas.configure(scrollregion = self.canvas.bbox("all"))
 
     def UI_frame_animation_controls(self):
+        #create tabs
         # controls frame
+        row=0
         self.frame_controls = tk.Frame(self.root, width=100, height=self.height)
-        self.frame_controls.grid(row=0, column=1, sticky='nw')
+        self.frame_controls.grid(row=row, column=1, sticky='nw')
+
+        # self.tab_physics = ttk.Frame(self.frame_controls)
+        # self.tab_graphs = ttk.Frame(self.frame_controls)
+
+        # self.frame_controls.add(self.tab_physics, 'physics')
+        # self.frame_controls.add(self.tab_graphs, 'graphs')
+        default_font = tkFont.nametofont("TkDefaultFont")
+        default_font.configure(size=7)
         # play
         self.play = tk.Button(self.frame_controls, text="play", command=self.do_play)
-        self.play.grid(column=0, row=0, sticky='w')
+        self.play.grid(row=row, column=0, sticky='w')
         # Pause
         self.pause = tk.Button(self.frame_controls, text="pause", command=self.do_pause)
-        self.pause.grid(column=1, row=0, sticky='w')
+        self.pause.grid(row=row, column=1, sticky='w')
         # Speed
         self.delay_slider = tk.Scale(
             self.frame_controls, from_=0, to=.75, resolution=.01, orient=tk.HORIZONTAL, variable=self.delay)
-        self.delay_slider.grid(column=3, row=0, sticky='w')
+        self.delay_slider.grid(row=row, column=3, sticky='w')
         # G
+        row+=1
         self.G_slider = tk.Scale(
             self.frame_controls, from_=-50, to=50, length = 200, tickinterval=10, resolution= 1,
             orient=tk.HORIZONTAL, variable=self.G)
-        self.G_slider.grid(column=0, row=1, sticky='w')
+        self.G_slider.grid(row=row, column=0, sticky='w')
         # alpha
+        row+=1
         self.alpha_slider = tk.Scale(
             self.frame_controls, from_=-3, to=3, length = 200, tickinterval=1, resolution=.01,
-            orient=tk.HORIZONTAL, variable=self.alpha)
-        self.alpha_slider.grid(column=0, row=2, sticky='w')
+            orient=tk.HORIZONTAL, variable=self.alpha, font=default_font)
+        self.alpha_slider.grid(row=row, column=0, sticky='w')
         # delta_t
+        row+=1
         self.Delta_t_slider = tk.Scale(
-            self.frame_controls, from_=-10, to=10, length = 200, tickinterval=1, resolution=.1,
+            self.frame_controls, from_=-5, to=5, length = 200, tickinterval=1, resolution=.1,
             orient=tk.HORIZONTAL, variable=self.Delta_t)
-        self.Delta_t_slider.grid(column=0, row=3, sticky='w')
+        self.Delta_t_slider.grid(row=row, column=0, sticky='w')
 
 
         # dropdown of center
+        row+=1
         self.dropdown_center = tk.OptionMenu(self.frame_controls, self.center_CO, *self.dropdown_list )
         self.dropdown_center.configure(width=20)
-        self.dropdown_center.grid(column=0, row=4, sticky='w')
+        self.dropdown_center.grid(row=row, column=0, sticky='w')
 
 
         # arrow lengths
+        row+=1
         self.arrow_factor_velocity_slider = tk.Scale(
             self.frame_controls, from_=0, to=50, length = 200, tickinterval=10, resolution=1,
             orient=tk.HORIZONTAL, variable=self.arrow_factor_velocity)
-        self.arrow_factor_velocity_slider.grid(column=0, row=5, sticky='w')
+        self.arrow_factor_velocity_slider.grid(row=row, column=0, sticky='w')
         # delta_t
+        row+=1
         self.arrow_factor_acceleration_slider = tk.Scale(
-            self.frame_controls, from_=0, to=300, length = 200, tickinterval=30, resolution=5,
+            self.frame_controls, from_=0, to=300, length = 200, tickinterval=50, resolution=5,
             orient=tk.HORIZONTAL, variable=self.arrow_factor_acceleration)
-        self.arrow_factor_acceleration_slider.grid(column=0, row=6, sticky='w')
+        self.arrow_factor_acceleration_slider.grid(row=row, column=0, sticky='w')
 
-        # self.shuffle_COM = True
-        # information on the bodies
+        # graph speed and acceleration
+        plt.style.use('ggplot')
+        #speed
+        self.f_speed = Figure(figsize=(2,2), dpi=100)
+        self.plot_speed = self.f_speed.add_subplot(111)
+        self.canvas_graph_speed = FigureCanvasTkAgg(self.f_speed, self.frame_controls)
+        self.canvas_graph_speed.draw()
+        row+=1
+        self.canvas_graph_speed.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_speed = tk.Frame(master=self.frame_controls)
+        toolbarFrame_speed.grid(row=row,column=0)
 
-        # planet 1
+        # acceleration
+        self.f_acceleration = Figure(figsize=(2,2), dpi=100)
+        self.plot_acceleration = self.f_acceleration.add_subplot(111)
+        self.canvas_graph_acceleration = FigureCanvasTkAgg(self.f_acceleration, self.frame_controls)
+        self.canvas_graph_acceleration.draw()
+        row+=1
+        self.canvas_graph_acceleration.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_acceleration = tk.Frame(master=self.frame_controls)
+        toolbarFrame_acceleration.grid(row=row,column=0)
 
-        # self.label_planet_1_pos = tk.Label(self.frame_controls, text = '', width = 20)
-        # self.label_planet_1_pos.grid(column=0, row=4, sticky='w')
+        # phi
+        self.f_phi = Figure(figsize=(2,2), dpi=100)
+        self.plot_phi = self.f_phi.add_subplot(111)
+        self.canvas_graph_phi = FigureCanvasTkAgg(self.f_phi, self.frame_controls)
+        self.canvas_graph_phi.draw()
+        row+=1
+        self.canvas_graph_phi.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_phi = tk.Frame(master=self.frame_controls)
+        toolbarFrame_phi.grid(row=row,column=0)
 
-        # self.label_planet_1_v = tk.Label(self.frame_controls, text = '', width = 20)
-        # self.label_planet_1_v.grid(column=0, row=5, sticky='w')
 
-        # self.label_COM_delta = tk.Label(self.frame_controls, text = '', width = 20)
-        # self.label_COM_delta.grid(column=0, row=6, sticky='w')
-
-        # self.label_COM = tk.Label(self.frame_controls, text = '', width = 20)
-        # self.label_COM.grid(column=0, row=7, sticky='w')
 
 
 
@@ -305,7 +370,7 @@ class Animate_celestial_objects():
         self.running = True
         self.stop = False
 
-
+MAX_PLOTLENGTH = 3000
 animation = Animate_celestial_objects()
 
 """

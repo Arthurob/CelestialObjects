@@ -9,7 +9,7 @@ import random
 import string
 import tkinter as tk
 import math
-import numba as nb
+# import numba as nb
 # import webcolors
 
 class celestialobject:
@@ -35,7 +35,11 @@ class celestialobject:
         self.oval = canvas.create_oval(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], fill=color)
         self.force_arrow = canvas.create_line(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], arrow=tk.LAST, fill=self.color)
         self.velocity_arrow = canvas.create_line(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], arrow=tk.LAST, fill=self.color)
-
+        self.keep_history = True
+        # self.maxsize
+        self.speed_history = []
+        self.acceleration_history = []
+        self.phi_history = []
 
 
 
@@ -43,12 +47,18 @@ class celestialobject:
         self.force = np.zeros((2,))
 
     # def update_parameters(self, position. )
-    def move_object(self, change, colortrail=''):
+    def move_object(self, change, color_trail=''):
         self.canvas.move(self.oval, change[0], change[1])
         self.canvas_position = self.get_center_oval()
-        if colortrail == '':
-            colortrail = self.color
-        self.canvas.create_rectangle((self.canvas_position[0], self.canvas_position[1])*2,outline=colortrail)
+        if color_trail == '':
+            color_trail = self.color
+        self.canvas.create_rectangle((self.canvas_position[0], self.canvas_position[1])*2,outline=color_trail)
+
+    def get_acceleration(self, correction=np.zeros((2,))):
+        return norm(self.acceleration + correction)
+
+    def get_speed(self, correction=np.zeros((2,))):
+        return norm(self.velocity + correction)
 
     def get_center_oval(self):
         coords = self.canvas.coords(self.oval)
@@ -61,6 +71,10 @@ class celestialobject:
         self.acceleration = self.force / self.mass
         self.velocity += self.acceleration*delta_t
         self.position += self.velocity*delta_t
+        if self.keep_history:
+            self.speed_history.append(self.get_speed())
+            self.acceleration_history.append(self.get_acceleration())
+            self.phi_history.append(self.get_phi())
 
     def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 160):
         # if factor != 0:
