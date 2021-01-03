@@ -54,19 +54,19 @@ class Animate_celestial_objects():
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
         self.arrow_factor_velocity = tk.IntVar()
-        self.arrow_factor_velocity.set(30)
+        self.arrow_factor_velocity.set(10)
         self.arrow_factor_acceleration = tk.IntVar()
         self.arrow_factor_acceleration.set(180)
         self.time_list = []
         self.time = 0
+        self.draw_tail = False
 
         self.init_UI()
-        self.initialise_planets()
-        self.stop = False
         self.running = False
+        self.initialise_planets()
         self.step = 0
         self.celestial_initizalized = True
-        self.loop()
+        self.next_step()
         self.root.mainloop()
 
 
@@ -162,7 +162,7 @@ class Animate_celestial_objects():
         length_list = len(self.time_list)
         for planet in self.planets:
             change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
-            planet.move_object(change)
+            planet.move_object(change, draw_tail=self.draw_tail)
             planet.draw_acceleration_arrow(correction=self.correction_acceleration,
                                            factor=self.arrow_factor_acceleration.get())
             planet.draw_velocity_arrow(correction=self.correction_velocity,
@@ -183,6 +183,13 @@ class Animate_celestial_objects():
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
+        # continue or pause loop
+        self.pause.update()
+        self.play.update()
+        # self.tail.update()
+        if self.running:
+            time.sleep(self.delay_slider.get())
+            self.next_step()
 
 
 
@@ -229,6 +236,14 @@ class Animate_celestial_objects():
 
     def move_move(self, event):
         self.canvas.scan_dragto(event.x, event.y, gain=1)
+
+    def pressed_tail(self):
+        if self.draw_tail:
+            self.button_tail.configure(relief=tk.RAISED)
+        else:
+            self.button_tail.configure(relief=tk.SUNKEN)
+        self.draw_tail = not self.draw_tail
+        print(self.draw_tail)
 
     #windows zoom
     def zoomer(self,event):
@@ -304,7 +319,14 @@ class Animate_celestial_objects():
             orient=tk.HORIZONTAL, variable=self.arrow_factor_acceleration)
         self.arrow_factor_acceleration_slider.grid(row=row, column=0, sticky='w')
 
-        # graph speed and acceleration
+        # tails
+        row+=1
+        self.button_tail = tk.Button(self.frame_controls, text="tails")
+        self.button_tail.configure(command=self.pressed_tail)
+        self.button_tail.configure(relief=tk.SUNKEN)
+        self.button_tail.grid(row=row, column=0, sticky='w')
+
+        # graphs
         plt.style.use('ggplot')
         #speed
         self.f_speed = Figure(figsize=(2,2), dpi=100)
@@ -337,38 +359,13 @@ class Animate_celestial_objects():
         toolbarFrame_phi.grid(row=row,column=0)
 
 
-
-
-
-    def loop(self):
-        while True:
-            # time.sleep(.5)
-            if self.stop:
-                print("stopped")
-                break
-            self.status = "continue_while_loop"
-            while self.status == "continue_while_loop":
-                self.status = "enter_for_loop_again"
-                self.pause.update()
-                self.play.update()
-                if self.running:
-                    self.next_step()
-                    time.sleep(self.delay_slider.get())
-                else:
-                    self.status = "enter_for_loop_again"
-
-    def do_stop(self):
-        self.stop = True
-
-
     def do_pause(self):
         self.running = False
-        # global running
-        # running = False
+
 
     def do_play(self):
         self.running = True
-        self.stop = False
+        self.next_step()
 
 MAX_PLOTLENGTH = 3000
 animation = Animate_celestial_objects()
