@@ -51,7 +51,7 @@ class celestialobject:
     def move_object(self, change, draw_tail=True, color_trail=''):
         self.canvas.move(self.oval, change[0], change[1])
         self.canvas_position = self.get_center_oval()
-        if draw_tail:
+        if draw_tail: # and norm(change)>.5:
             if color_trail == '':
                 color_trail = self.color
             self.canvas.create_rectangle((self.canvas_position[0], self.canvas_position[1])*2
@@ -65,8 +65,7 @@ class celestialobject:
 
     def get_center_oval(self):
         coords = self.canvas.coords(self.oval)
-        return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2]
-                        , dtype = np.float64)
+        return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2])
 
     def get_phi(self):
         return angle_between(self.acceleration, self.velocity)
