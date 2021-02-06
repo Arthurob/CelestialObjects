@@ -55,6 +55,7 @@ class Animate_celestial_objects():
         self.center = [500.,500.] # np.array([self.canvas.winfo_width(), self.canvas.winfo_height()])/2
         self.planets = []
         self.dropdown_list = ['COM','Absolute']
+        self.draw_graph = False
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
         self.arrow_factor_velocity = tk.IntVar()
@@ -165,10 +166,10 @@ class Animate_celestial_objects():
 
         self.coordsCOMNew = self.get_coords_com()
         self.set_deltas(delta_t)
-        # self.plot_speed.clear()
-        # self.plot_acceleration.clear()
-        # self.plot_phi.clear()
-        length_list = len(self.time_list)
+        self.plot_speed.clear()
+        self.plot_acceleration.clear()
+        self.plot_phi.clear()
+        self.length_list = len(self.time_list)
         t_i_draw = datetime.now()
         print(f'3  {t_i_draw - t_f_ns}')
         for planet in self.planets:
@@ -178,22 +179,13 @@ class Animate_celestial_objects():
                                            factor=self.arrow_factor_acceleration.get()*self.current_zoom_factor)
             planet.draw_velocity_arrow(correction=self.correction_velocity,
                                        factor=self.arrow_factor_velocity.get()*self.current_zoom_factor )
-            # self.plot_speed.plot(
-            #     self.time_list[-min(length_list, MAX_PLOTLENGTH):],
-            #     planet.speed_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
 
-            # self.plot_acceleration.plot(
-            #     self.time_list[-min(length_list, MAX_PLOTLENGTH):],
-            #     planet.acceleration_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
+            self.update_data_graphs(planet)
 
-            # self.plot_phi.plot(
-            #     self.time_list[-min(length_list, MAX_PLOTLENGTH):],
-            #     planet.phi_history[-min(length_list, MAX_PLOTLENGTH):], color=planet.color)
         t_f_draw = datetime.now()
         print(f'draw planets: {t_f_draw - t_i_draw}')
-        # self.canvas_graph_speed.draw()
-        # self.canvas_graph_acceleration.draw()
-        # self.canvas_graph_phi.draw()
+        if self.draw_graph:
+            self.draw_graphs()
         t_f_draw_graphs = datetime.now()
         print(f'draw graphs: {t_f_draw_graphs - t_f_draw }')
 
@@ -206,14 +198,30 @@ class Animate_celestial_objects():
         t_f = t_f_COM
         if self.running:
             print(f'Total1: {t_f-t_i}')
-            self.canvas.itemconfig(
-                self.text_id3,
-                text=f'positions moon: oval={self.planets[3].get_center_oval()}, {self.planets[3].position}'
-               )
+            # self.canvas.itemconfig(
+            #     self.text_id3,
+            #     text=f'positions moon: oval={self.planets[3].get_center_oval()}, {self.planets[3].position}'
+            #    )
             # print(f'Total2: {t_f-t_i}')
             self.root.after(self.delay_slider.get()+1, self.next_step)
 
+    def update_data_graphs(self, planet):
+        self.plot_speed.plot(
+                 self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
+                 planet.speed_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
 
+        self.plot_acceleration.plot(
+             self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
+             planet.acceleration_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+
+        self.plot_phi.plot(
+             self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
+                planet.phi_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+
+    def draw_graphs(self):
+        self.canvas_graph_speed.draw()
+        self.canvas_graph_acceleration.draw()
+        self.canvas_graph_phi.draw()
 
     def init_UI(self):
 
@@ -249,29 +257,20 @@ class Animate_celestial_objects():
         self.canvas.bind("<ButtonPress-1>", self.move_start)
         self.canvas.bind("<B1-Motion>", self.move_move)
         self.canvas.bind("<MouseWheel>",self.zoomer)
+        # Set default font
+        self.default_font = tkFont.nametofont("TkDefaultFont")
+        self.default_font.configure(size=7)
 
-        self.canvas.bind("<Button-1>", self.canvas_onclick)
-        fontStyle = tkFont.Font(family="Lucida Grande", size=12)
-        self.text_id = self.canvas.create_text(500, 600, anchor='se', fill='red', font=fontStyle)
-        self.canvas.itemconfig(self.text_id, text='hello')
-        self.text_id2 = self.canvas.create_text(530, 630, anchor='se', fill='red', font=fontStyle)
-        self.canvas.itemconfig(self.text_id2, text='hello2')
-        self.text_id3 = self.canvas.create_text(560, 660, anchor='se', fill='red', font=fontStyle)
-        self.canvas.itemconfig(self.text_id3, text='hello3')
+        # self.canvas.bind("<Button-1>", self.canvas_onclick)
+        # fontStyle = tkFont.Font(family="Lucida Grande", size=12)
+        # self.text_id = self.canvas.create_text(500, 600, anchor='se', fill='red', font=fontStyle)
+        # self.canvas.itemconfig(self.text_id, text='hello')
+        # self.text_id2 = self.canvas.create_text(530, 630, anchor='se', fill='red', font=fontStyle)
+        # self.canvas.itemconfig(self.text_id2, text='hello2')
+        # self.text_id3 = self.canvas.create_text(560, 660, anchor='se', fill='red', font=fontStyle)
+        # self.canvas.itemconfig(self.text_id3, text='hello3')
 
 
-        # controls frame
-        self.frame_controls = tk.Frame(self.root, width=200, height=self.height)
-        self.frame_controls.grid(row=0, column=1, sticky='nw')
-
-        self.physics = ttk.Notebook(self.frame_controls, width=200 )
-        self.physics.grid(row=1,column=1)
-        # self.tab_graphs = ttk.Frame(self.frame_controls)
-        self.tab_physics = ttk.Frame(self.physics )
-        self.physics.add(self.tab_physics, text='physics', compound=tk.TOP)
-        # self.physics.add(self.tab_graphs, 'graphs')
-        default_font = tkFont.nametofont("TkDefaultFont")
-        default_font.configure(size=7)
 
         self.UI_frame_animation_controls()
 
@@ -311,7 +310,22 @@ class Animate_celestial_objects():
 
 
     def UI_frame_animation_controls(self):
+        # controls frame
+        self.frame_controls = tk.Frame(self.root, width=200, height=self.height)
+        self.frame_controls.grid(row=0, column=1, sticky='nw')
+        # Add notebook for tabs
+        self.physics = ttk.Notebook(self.frame_controls, width=200 )
+        self.physics.grid(row=1,column=1)
+        # physics controls tab
+        self.tab_physics = ttk.Frame(self.physics )
+        self.physics.add(self.tab_physics, text='physics', compound=tk.TOP)
+        # Graphs tabb
+        self.graphs_tab = ttk.Frame(self.physics )
+        self.physics.add(self.graphs_tab, text='graphs', compound=tk.TOP)
+        self.UI_physics_tab()
+        self.UI_graphs()
 
+    def UI_physics_tab(self):
         # play
         row=0
         self.play = tk.Button(self.tab_physics, text="play", command=self.do_play)
@@ -333,7 +347,7 @@ class Animate_celestial_objects():
         row+=1
         self.alpha_slider = tk.Scale(
             self.tab_physics, from_=-3, to=3, length = 200, tickinterval=1, resolution=.01,
-            orient=tk.HORIZONTAL, variable=self.alpha, font=default_font)
+            orient=tk.HORIZONTAL, variable=self.alpha, font=self.default_font)
         self.alpha_slider.grid(row=row, column=0, sticky='w')
         # delta_t
         row+=1
@@ -370,37 +384,39 @@ class Animate_celestial_objects():
         self.button_tail.configure(relief=tk.RAISED)
         self.button_tail.grid(row=row, column=0, sticky='w')
 
-        # # graphs
-        # plt.style.use('ggplot')
-        # #speed
-        # self.f_speed = Figure(figsize=(2,2), dpi=100)
-        # self.plot_speed = self.f_speed.add_subplot(111)
-        # self.canvas_graph_speed = FigureCanvasTkAgg(self.f_speed, self.frame_controls)
-        # self.canvas_graph_speed.draw()
-        # row+=1
-        # self.canvas_graph_speed.get_tk_widget().grid(row=row, column=0)
-        # toolbarFrame_speed = tk.Frame(master=self.frame_controls)
-        # toolbarFrame_speed.grid(row=row,column=0)
+    def UI_graphs(self):
+        # graphs
+        plt.style.use('ggplot')
+        #speed
+        row = 0
+        self.f_speed = Figure(figsize=(2,2), dpi=100)
+        self.plot_speed = self.f_speed.add_subplot(111)
+        self.canvas_graph_speed = FigureCanvasTkAgg(self.f_speed, self.graphs_tab)
+        self.canvas_graph_speed.draw()
+        row+=1
+        self.canvas_graph_speed.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_speed = tk.Frame(master=self.graphs_tab)
+        toolbarFrame_speed.grid(row=row,column=0)
 
-        # # acceleration
-        # self.f_acceleration = Figure(figsize=(2,2), dpi=100)
-        # self.plot_acceleration = self.f_acceleration.add_subplot(111)
-        # self.canvas_graph_acceleration = FigureCanvasTkAgg(self.f_acceleration, self.frame_controls)
-        # self.canvas_graph_acceleration.draw()
-        # row+=1
-        # self.canvas_graph_acceleration.get_tk_widget().grid(row=row, column=0)
-        # toolbarFrame_acceleration = tk.Frame(master=self.frame_controls)
-        # toolbarFrame_acceleration.grid(row=row,column=0)
+        # acceleration
+        self.f_acceleration = Figure(figsize=(2,2), dpi=100)
+        self.plot_acceleration = self.f_acceleration.add_subplot(111)
+        self.canvas_graph_acceleration = FigureCanvasTkAgg(self.f_acceleration, self.graphs_tab)
+        self.canvas_graph_acceleration.draw()
+        row+=1
+        self.canvas_graph_acceleration.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_acceleration = tk.Frame(master=self.graphs_tab)
+        toolbarFrame_acceleration.grid(row=row,column=0)
 
-        # # phi
-        # self.f_phi = Figure(figsize=(2,2), dpi=100)
-        # self.plot_phi = self.f_phi.add_subplot(111)
-        # self.canvas_graph_phi = FigureCanvasTkAgg(self.f_phi, self.frame_controls)
-        # self.canvas_graph_phi.draw()
-        # row+=1
-        # self.canvas_graph_phi.get_tk_widget().grid(row=row, column=0)
-        # toolbarFrame_phi = tk.Frame(master=self.frame_controls)
-        # toolbarFrame_phi.grid(row=row,column=0)
+        # phi
+        self.f_phi = Figure(figsize=(2,2), dpi=100)
+        self.plot_phi = self.f_phi.add_subplot(111)
+        self.canvas_graph_phi = FigureCanvasTkAgg(self.f_phi, self.graphs_tab)
+        self.canvas_graph_phi.draw()
+        row+=1
+        self.canvas_graph_phi.get_tk_widget().grid(row=row, column=0)
+        toolbarFrame_phi = tk.Frame(master=self.graphs_tab)
+        toolbarFrame_phi.grid(row=row,column=0)
 
 
     def do_pause(self):
