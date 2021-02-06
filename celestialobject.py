@@ -17,12 +17,12 @@ class celestialobject:
     def __init__(self, mass, color, canvas, start_position=np.zeros((2,)), start_velocity=np.zeros((2,)), name='', radius=0):
         self.mass = mass
         if radius == 0:
-            self.radius = 3*math.sqrt(mass)
+            self.radius = max(int(3*math.sqrt(mass)), 1)
         else:
             self.radius = radius
-        self.position = np.array(start_position).astype(np.double)
+        self.position = np.array(start_position).astype(np.float64)
         self.canvas_position = self.position
-        self.velocity = np.array(start_velocity).astype(np.double)
+        self.velocity = np.array(start_velocity).astype(np.float64)
         self.force = np.zeros((2,))
         self.acceleration = np.zeros((2,))
         self.color = color
@@ -30,7 +30,8 @@ class celestialobject:
             letters = string.ascii_lowercase
             result_str = ''.join(random.choice(letters) for i in range(6))
             self.name = 'planet'+result_str
-        coords_circle = [start_position[0]-self.radius/2, start_position[1]-self.radius/2, start_position[0]+self.radius/2, start_position[1]+self.radius/2]
+        coords_circle = [start_position[0]-self.radius/2, start_position[1]-self.radius/2,
+                         start_position[0]+self.radius/2, start_position[1]+self.radius/2]
         self.canvas = canvas
         self.oval = canvas.create_oval(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], fill=color)
         self.force_arrow = canvas.create_line(coords_circle[0], coords_circle[1], coords_circle[2], coords_circle[3], arrow=tk.LAST, fill=self.color)
@@ -47,12 +48,14 @@ class celestialobject:
         self.force = np.zeros((2,))
 
     # def update_parameters(self, position. )
-    def move_object(self, change, color_trail=''):
+    def move_object(self, change, draw_tail=True, color_trail=''):
         self.canvas.move(self.oval, change[0], change[1])
         self.canvas_position = self.get_center_oval()
-        if color_trail == '':
-            color_trail = self.color
-        self.canvas.create_rectangle((self.canvas_position[0], self.canvas_position[1])*2,outline=color_trail)
+        if draw_tail: # and norm(change)>.5:
+            if color_trail == '':
+                color_trail = self.color
+            self.canvas.create_rectangle((self.canvas_position[0], self.canvas_position[1])*2
+                                         ,outline=color_trail)
 
     def get_acceleration(self, correction=np.zeros((2,))):
         return norm(self.acceleration + correction)
@@ -62,7 +65,7 @@ class celestialobject:
 
     def get_center_oval(self):
         coords = self.canvas.coords(self.oval)
-        return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2], dtype = np.double)
+        return np.array([(coords[0] + coords[2])/2, (coords[1] + coords[3])/2])
 
     def get_phi(self):
         return angle_between(self.acceleration, self.velocity)
