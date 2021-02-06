@@ -31,17 +31,23 @@ class Animate_celestial_objects():
 
 
     def start(self):
+        self.init_window()
+        self.init_vars()
+        self.init_UI()
+        self.initialise_planets()
+        self.step = 0
+        self.celestial_initizalized = True
+        self.next_step()
+        self.root.mainloop()
+
+    def init_window(self):
         self.root = tk.Tk()
-        # self.root.resizable(0,0)
-        # self.root.wm_attributes("-topmost", 1)
         self.width = self.root.winfo_screenwidth()
         self.height = self.root.winfo_screenheight()
-        # self.root.minsize(width=str(self.width), height=str(self.height))
         self.root.geometry("1000x1000")
-        # self.minsize(1000,800)
-        # self.root.geometry("1150x800")
-        # self.root.attributes('-fullscreen', True)
-        #Init slide variables
+
+    def init_vars(self):
+         #Init slide variables
         self.delay = tk.IntVar()
         self.delay.set(0)
         self.alpha = tk.DoubleVar()
@@ -58,6 +64,8 @@ class Animate_celestial_objects():
         self.draw_graph = False
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
+        self.stats_CO = tk.StringVar()
+        self.stats_CO.set('COM')
         self.arrow_factor_velocity = tk.IntVar()
         self.arrow_factor_velocity.set(10)
         self.arrow_factor_acceleration = tk.IntVar()
@@ -65,15 +73,8 @@ class Animate_celestial_objects():
         self.time_list = []
         self.time = 0
         self.draw_tail = False
-
-        self.init_UI()
         self.running = False
-        self.initialise_planets()
-        self.step = 0
-        self.celestial_initizalized = True
-        self.next_step()
-        self.root.mainloop()
-
+        self.do_display_stats = False
 
 
     def initialise_planets(self):
@@ -153,16 +154,19 @@ class Animate_celestial_objects():
         t_i = datetime.now()
         self.calculate_forces()
         t_f_cf = datetime.now()
-        print(f'\n Calculate forces: {t_f_cf - t_i}')
+        if PRINT_TIMES:
+            print(f'\n Calculate forces: {t_f_cf - t_i}')
         delta_t = self.Delta_t.get()
         self.time += delta_t
         self.time_list.append(self.time)
         t_i_ns  = datetime.now()
-        print(f'get delta t  {t_i_ns - t_f_cf}')
+        if PRINT_TIMES:
+            print(f'get delta t  {t_i_ns - t_f_cf}')
         for planet in self.planets:
             planet.new_state_planet(delta_t)
         t_f_ns = datetime.now()
-        print(f'Calculate new state: {t_f_ns - t_i_ns}')
+        if PRINT_TIMES:
+            print(f'Calculate new state: {t_f_ns - t_i_ns}')
 
         self.coordsCOMNew = self.get_coords_com()
         self.set_deltas(delta_t)
@@ -171,7 +175,8 @@ class Animate_celestial_objects():
         self.plot_phi.clear()
         self.length_list = len(self.time_list)
         t_i_draw = datetime.now()
-        print(f'3  {t_i_draw - t_f_ns}')
+        if PRINT_TIMES:
+            print(f'3  {t_i_draw - t_f_ns}')
         for planet in self.planets:
             change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
             planet.move_object(change, draw_tail=self.draw_tail)
@@ -183,21 +188,28 @@ class Animate_celestial_objects():
             self.update_data_graphs(planet)
 
         t_f_draw = datetime.now()
-        print(f'draw planets: {t_f_draw - t_i_draw}')
+        if PRINT_TIMES:
+            print(f'draw planets: {t_f_draw - t_i_draw}')
         if self.draw_graph:
             self.draw_graphs()
         t_f_draw_graphs = datetime.now()
-        print(f'draw graphs: {t_f_draw_graphs - t_f_draw }')
+        if PRINT_TIMES:
+            print(f'draw graphs: {t_f_draw_graphs - t_f_draw }')
 
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
         t_f_COM = datetime.now()
-        print(f'COM: {t_f_COM - t_f_draw_graphs}')
+        if PRINT_TIMES:
+            print(f'COM: {t_f_COM - t_f_draw_graphs}')
         # continue or pause loop
         t_f = t_f_COM
+
+        if self.do_display_stats:
+            self.display_stats()
         if self.running:
-            print(f'Total1: {t_f-t_i}')
+            if PRINT_TIMES:
+                print(f'Total1: {t_f-t_i}')
             # self.canvas.itemconfig(
             #     self.text_id3,
             #     text=f'positions moon: oval={self.planets[3].get_center_oval()}, {self.planets[3].position}'
@@ -238,7 +250,7 @@ class Animate_celestial_objects():
         self.root.grid_columnconfigure(0, weight=l_animation)# weight=l_animation)
         self.root.grid_columnconfigure(1, weight=l_controls)#weight=l_controls)
 
-        self.canvas_width = self.width-100
+        self.canvas_width = self.width-300
         self.canvas = tk.Canvas(self.frame_animation, width=self.canvas_width, height=1000, bg='black') #, width=self.canvas_width, height=self.height, bg="gray")
         self.canvas.grid(column=0, row=0)
 
@@ -260,6 +272,61 @@ class Animate_celestial_objects():
         # Set default font
         self.default_font = tkFont.nametofont("TkDefaultFont")
         self.default_font.configure(size=7)
+        self.UI_frame_animation_controls()
+
+
+
+    def UI_frame_animation_controls(self):
+        # controls frame
+        self.frame_controls = tk.Frame(self.root, width=300, height=self.height)
+        self.frame_controls.grid(row=0, column=1, sticky='nw')
+        # Add notebook for tabs
+        self.physics = ttk.Notebook(self.frame_controls, width=300 )
+        self.physics.grid(row=1,column=1)
+        self.physics.bind("<<NotebookTabChanged>>", self.on_tab_selected)
+        # physics controls tab
+        self.tab_physics = ttk.Frame(self.physics )
+        self.physics.add(self.tab_physics, text='physics', compound=tk.TOP)
+        # Graphs tabb
+        self.graphs_tab = ttk.Frame(self.physics )
+        self.physics.add(self.graphs_tab, text='graphs', compound=tk.TOP)
+        # stats tabb
+        self.stats_tab = ttk.Frame(self.physics )
+        self.physics.add(self.stats_tab, text='stats', compound=tk.TOP)
+        # fill tabs
+        self.UI_physics_tab()
+        self.UI_graphs()
+        self.UI_stats()
+
+    def on_tab_selected(self, event):
+        selected_tab = event.widget.select()
+        tab_text = event.widget.tab(selected_tab, 'text')
+
+        if tab_text == 'stats':
+            self.do_display_stats = True
+            self.draw_graph = False
+        elif tab_text == 'graphs':
+            self.draw_graph = True
+            self.do_display_stats = False
+
+        print(self.do_display_stats)
+
+    def UI_stats(self):
+        self.dropdown_center_stats = tk.OptionMenu(self.stats_tab, self.center_CO,
+                                                   *self.dropdown_list )
+        self.dropdown_center_stats.configure(width=20)
+
+
+        label_location1_name = tk.Label(self.stats_tab, text="location1")
+        self.label_location1_display = tk.Label(self.stats_tab)
+
+        # arrange
+        row = 0
+        self.dropdown_center_stats.grid(row=row, column=0, sticky='w')
+        row += 1
+        label_location1_name.grid(row=row, column=0, sticky='w')
+        self.label_location1_display.grid(row=row, column=1, sticky='w')
+        # self.display_stats(self.planets[0])
 
         # self.canvas.bind("<Button-1>", self.canvas_onclick)
         # fontStyle = tkFont.Font(family="Lucida Grande", size=12)
@@ -271,117 +338,76 @@ class Animate_celestial_objects():
         # self.canvas.itemconfig(self.text_id3, text='hello3')
 
 
-
-        self.UI_frame_animation_controls()
-
-    def canvas_onclick(self, event):
-        self.canvas.itemconfig(
-            self.text_id,
-            text= f'You clicked at ({event.x}, {event.y})'
-        )
-        self.canvas.itemconfig(
-            self.text_id2,
-            text= f'You clicked at ({self.canvas.canvasx(event.x)}, {self.canvas.canvasy(event.y)})'
-        )
-    #move
-    def move_start(self, event):
-        self.canvas.scan_mark(event.x, event.y)
-
-    def move_move(self, event):
-        self.canvas.scan_dragto(event.x, event.y, gain=1)
-
-    def pressed_tail(self):
-        if self.draw_tail:
-            self.button_tail.configure(relief=tk.RAISED)
+    def display_stats(self):
+        option = self.stats_CO.get()
+        if option == 'COM':
+            True
+        elif option == 'Absolute':
+            True
         else:
-            self.button_tail.configure(relief=tk.SUNKEN)
-        self.draw_tail = not self.draw_tail
-        print(self.draw_tail)
-
-    #windows zoom
-    def zoomer(self,event):
-        if (event.delta > 0):
-            self.canvas.scale("all", event.x, event.y, (1+self.zoom_factor), (1+self.zoom_factor))
-            self.current_zoom_factor *= (1+self.zoom_factor)
-        elif (event.delta < 0):
-            self.canvas.scale("all", event.x, event.y, (1-self.zoom_factor), (1-self.zoom_factor))
-            self.current_zoom_factor *= (1-self.zoom_factor)
-        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
-
-
-    def UI_frame_animation_controls(self):
-        # controls frame
-        self.frame_controls = tk.Frame(self.root, width=200, height=self.height)
-        self.frame_controls.grid(row=0, column=1, sticky='nw')
-        # Add notebook for tabs
-        self.physics = ttk.Notebook(self.frame_controls, width=200 )
-        self.physics.grid(row=1,column=1)
-        # physics controls tab
-        self.tab_physics = ttk.Frame(self.physics )
-        self.physics.add(self.tab_physics, text='physics', compound=tk.TOP)
-        # Graphs tabb
-        self.graphs_tab = ttk.Frame(self.physics )
-        self.physics.add(self.graphs_tab, text='graphs', compound=tk.TOP)
-        self.UI_physics_tab()
-        self.UI_graphs()
+            planet = self.color_planet[option]
+        self.label_location1_display.config(text=f'{planet.position}'
+        )
 
     def UI_physics_tab(self):
         # play
-        row=0
         self.play = tk.Button(self.tab_physics, text="play", command=self.do_play)
-        self.play.grid(row=row, column=0, sticky='w')
         # Pause
         self.pause = tk.Button(self.tab_physics, text="pause", command=self.do_pause)
-        self.pause.grid(row=row, column=1, sticky='w')
         # Speed
         self.delay_slider = tk.Scale(
             self.tab_physics, from_=0, to=1000, resolution=100, orient=tk.HORIZONTAL, variable=self.delay)
-        self.delay_slider.grid(row=row, column=3, sticky='w')
+
         # G
-        row+=1
         self.G_slider = tk.Scale(
             self.tab_physics, from_=-50, to=50, length = 200, tickinterval=10, resolution= 1,
             orient=tk.HORIZONTAL, variable=self.G)
-        self.G_slider.grid(row=row, column=0, sticky='w')
         # alpha
-        row+=1
         self.alpha_slider = tk.Scale(
             self.tab_physics, from_=-3, to=3, length = 200, tickinterval=1, resolution=.01,
             orient=tk.HORIZONTAL, variable=self.alpha, font=self.default_font)
-        self.alpha_slider.grid(row=row, column=0, sticky='w')
         # delta_t
-        row+=1
         self.Delta_t_slider = tk.Scale(
             self.tab_physics, from_=-5, to=5, length = 200, tickinterval=1, resolution=.1,
             orient=tk.HORIZONTAL, variable=self.Delta_t)
-        self.Delta_t_slider.grid(row=row, column=0, sticky='w')
 
 
-        # dropdown of center
-        row+=1
+        # dropdown of planets
         self.dropdown_center = tk.OptionMenu(self.tab_physics, self.center_CO, *self.dropdown_list )
         self.dropdown_center.configure(width=20)
-        self.dropdown_center.grid(row=row, column=0, sticky='w')
 
 
         # arrow lengths
-        row+=1
         self.arrow_factor_velocity_slider = tk.Scale(
             self.tab_physics, from_=0, to=50, length = 200, tickinterval=10, resolution=1,
             orient=tk.HORIZONTAL, variable=self.arrow_factor_velocity)
-        self.arrow_factor_velocity_slider.grid(row=row, column=0, sticky='w')
         # delta_t
-        row+=1
         self.arrow_factor_acceleration_slider = tk.Scale(
             self.tab_physics, from_=0, to=300, length = 200, tickinterval=50, resolution=5,
             orient=tk.HORIZONTAL, variable=self.arrow_factor_acceleration)
-        self.arrow_factor_acceleration_slider.grid(row=row, column=0, sticky='w')
 
         # tails
-        row+=1
         self.button_tail = tk.Button(self.tab_physics, text="tails")
         self.button_tail.configure(command=self.pressed_tail)
         self.button_tail.configure(relief=tk.RAISED)
+
+        row = 0
+        self.play.grid(row=row, column=0, sticky='w')
+        self.pause.grid(row=row, column=1, sticky='w')
+        self.delay_slider.grid(row=row, column=3, sticky='w')
+        row += 1
+        self.G_slider.grid(row=row, column=0, sticky='w')
+        row += 1
+        self.alpha_slider.grid(row=row, column=0, sticky='w')
+        row += 1
+        self.Delta_t_slider.grid(row=row, column=0, sticky='w')
+        row += 1
+        self.dropdown_center.grid(row=row, column=0, sticky='w')
+        row += 1
+        self.arrow_factor_velocity_slider.grid(row=row, column=0, sticky='w')
+        row += 1
+        self.arrow_factor_acceleration_slider.grid(row=row, column=0, sticky='w')
+        row += 1
         self.button_tail.grid(row=row, column=0, sticky='w')
 
     def UI_graphs(self):
@@ -417,7 +443,44 @@ class Animate_celestial_objects():
         self.canvas_graph_phi.get_tk_widget().grid(row=row, column=0)
         toolbarFrame_phi = tk.Frame(master=self.graphs_tab)
         toolbarFrame_phi.grid(row=row,column=0)
+# Events
 
+    def canvas_onclick(self, event):
+        self.canvas.itemconfig(
+            self.text_id,
+            text= f'You clicked at ({event.x}, {event.y})'
+        )
+        self.canvas.itemconfig(
+            self.text_id2,
+            text= f'You clicked at ({self.canvas.canvasx(event.x)}, {self.canvas.canvasy(event.y)})'
+        )
+
+
+
+    #move
+    def move_start(self, event):
+        self.canvas.scan_mark(event.x, event.y)
+
+    def move_move(self, event):
+        self.canvas.scan_dragto(event.x, event.y, gain=1)
+
+    def pressed_tail(self):
+        if self.draw_tail:
+            self.button_tail.configure(relief=tk.RAISED)
+        else:
+            self.button_tail.configure(relief=tk.SUNKEN)
+        self.draw_tail = not self.draw_tail
+        print(self.draw_tail)
+
+    #windows zoom
+    def zoomer(self,event):
+        if (event.delta > 0):
+            self.canvas.scale("all", event.x, event.y, (1+self.zoom_factor), (1+self.zoom_factor))
+            self.current_zoom_factor *= (1+self.zoom_factor)
+        elif (event.delta < 0):
+            self.canvas.scale("all", event.x, event.y, (1-self.zoom_factor), (1-self.zoom_factor))
+            self.current_zoom_factor *= (1-self.zoom_factor)
+        self.canvas.configure(scrollregion = self.canvas.bbox("all"))
 
     def do_pause(self):
         self.running = False
@@ -428,6 +491,7 @@ class Animate_celestial_objects():
         self.next_step()
 
 MAX_PLOTLENGTH = 3000
+PRINT_TIMES = False
 animation = Animate_celestial_objects()
 
 """
