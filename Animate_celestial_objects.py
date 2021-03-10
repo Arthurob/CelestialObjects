@@ -107,12 +107,13 @@ class Animate_celestial_objects():
     def init_COM(self):
          # create COm marker
         self.coordsCOM = self.get_coords_com()
-        self.COM = self.canvas.create_line(self.coordsCOM[0]-5, self.coordsCOM[1]-5,
+        self.COM = [self.canvas.create_line(self.coordsCOM[0]-5, self.coordsCOM[1]-5,
                                            self.coordsCOM[0]+5, self.coordsCOM[1]+5,
-                                           self.coordsCOM[0], self.coordsCOM[1],
+                                           fill='white')]
+        self.COM.insert(1, self.canvas.create_line(
                                            self.coordsCOM[0]-5, self.coordsCOM[1]+5,
                                            self.coordsCOM[0]+5, self.coordsCOM[1]-5,
-                                           fill='white')
+                                           fill='white'))
 
     def get_coords_com(self):
         return sum([planet.mass*planet.position for planet in self.planets]) / sum([planet.mass for planet in self.planets])
@@ -212,7 +213,8 @@ class Animate_celestial_objects():
             print(f'draw graphs: {t_f_draw_graphs - t_f_draw }')
 
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.zoom_factor
-        self.canvas.move(self.COM, COM_change[0], COM_change[1])
+        self.canvas.move(self.COM[0], COM_change[0], COM_change[1])
+        self.canvas.move(self.COM[1], COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
         t_f_COM = datetime.now()
         if PRINT_TIMES:
@@ -233,16 +235,16 @@ class Animate_celestial_objects():
 
     def update_data_graphs(self, planet):
         self.plot_speed.plot(
-                 self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-                 planet.speed_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+                 self.time_list[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL],
+                 planet.speed_history[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL], color=planet.color)
 
         self.plot_acceleration.plot(
-             self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-             planet.acceleration_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+             self.time_list[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL],
+             planet.acceleration_history[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL], color=planet.color)
 
         self.plot_phi.plot(
-             self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-                planet.phi_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+             self.time_list[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL],
+                planet.phi_history[-min(self.length_list, MAX_PLOTLENGTH)::PLOT_INTERVAL], color=planet.color)
 
     def draw_graphs(self):
         self.canvas_graph_speed.draw()
@@ -379,11 +381,11 @@ class Animate_celestial_objects():
             orient=tk.HORIZONTAL, variable=self.G)
         # alpha
         self.alpha_slider = tk.Scale(
-            self.tab_physics, from_=-3, to=3, length=300, tickinterval=1, resolution=.01,
+            self.tab_physics, from_=-2, to=3, length=300, tickinterval=1, resolution=.01,
             orient=tk.HORIZONTAL, variable=self.alpha, font=self.default_font)
         # Delta_t
         self.Delta_t_slider = tk.Scale(
-            self.tab_physics, from_=-3, to=3, length=300, tickinterval=.5, resolution=.05,
+            self.tab_physics, from_=-3, to=3, length=300, tickinterval=.5, resolution=.025,
             orient=tk.HORIZONTAL, variable=self.Delta_t)
 
 
@@ -511,6 +513,7 @@ class Animate_celestial_objects():
         self.next_step()
 
 MAX_PLOTLENGTH = 1000
+PLOT_INTERVAL = 10
 PRINT_TIMES = False
 MAX_TAIL_LENGTH = 800
 master = tk.Tk()
