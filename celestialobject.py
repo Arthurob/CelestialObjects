@@ -201,11 +201,11 @@ def unit_vector(vector):
 def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
-    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+    return np.arccos(inner(v1_u, v2_u))
 
 # @nb.njit(fastmath=True)
-def norm(l):
-    s = 0.
-    for i in range(l.shape[0]):
-        s += l[i]**2
-    return np.sqrt(s)
+def norm(v):
+    return np.sqrt(np.inner(v, v))
+
+def inner(u, v):
+    return np.inner(u, v)

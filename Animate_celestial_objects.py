@@ -230,7 +230,6 @@ class Animate_celestial_objects():
         if self.running:
             if PRINT_TIMES:
                 print(f'Total1: {t_f-t_i}')
-
             self.master.after(max(self.delay_slider.get(),1), self.next_step)
 
     def update_data_graphs(self, planet):
@@ -351,7 +350,7 @@ class Animate_celestial_objects():
         label_location_oval.grid(row=row, column=0, sticky='w')
         self.label_location_oval.grid(row=row, column=1, sticky='w')
 
-        # self.canvas.bind("<Button-1>", self.canvas_onclick)
+        self.canvas.bind("<Button-1>", self.canvas_onclick)
 
 
 
