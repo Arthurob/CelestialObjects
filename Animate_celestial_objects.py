@@ -116,8 +116,6 @@ class Animate_celestial_objects_pygame():
         self.correction_acceleration = np.zeros((2,))
 
     def initialise_planets(self):
-
-
             self.planets = []
             self.planets.append( co.celestialobject(1000, 'yellow',   self.center+np.array([152,160]), [-3., -2.], 'planet1') )
             self.planets.append( co.celestialobject(1000, 'gray',  self.center+np.array([20,-10]), [10,30], 'planet24') ) #+np.array([-250,-160]), [.2,-.1]
@@ -138,7 +136,11 @@ class Animate_celestial_objects_pygame():
     def draw_arrow(self, color, start, end):
         pygame.draw.aaline(self.surface, color, start, end, 1)
         rotation = math.degrees(math.atan2(start[1]-end[1], end[0]-start[0]))+90
-        pygame.draw.polygon(self.surface, color, ((end[0]+2*math.sin(math.radians(rotation)), end[1]+2*math.cos(math.radians(rotation))), (end[0]+2*math.sin(math.radians(rotation-120)), end[1]+2*math.cos(math.radians(rotation-120))), (end[0]+2*math.sin(math.radians(rotation+120)), end[1]+2*math.cos(math.radians(rotation+120)))))
+        pygame.draw.polygon(self.surface, color, (
+            (end[0]+2*math.sin(math.radians(rotation)), end[1]+2*math.cos(math.radians(rotation))),
+            (end[0]+2*math.sin(math.radians(rotation-120)), end[1]+2*math.cos(math.radians(rotation-120))),
+            (end[0]+2*math.sin(math.radians(rotation+120)), end[1]+2*math.cos(math.radians(rotation+120))))
+            )
 
     def draw_all(self):
         width, height = self.screen.get_size()
@@ -151,7 +153,6 @@ class Animate_celestial_objects_pygame():
         for planet in self.planets:
             corrected_position = self.get_zoomed_coordinates(planet.position - self.Delta)
             self.draw_COs(planet, corrected_position)
-            # surface_mother.blit(self.surface, (0,0))
 
             if self.do_draw_arrows:
                 self.draw_arrows(planet, corrected_position)
