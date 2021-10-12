@@ -146,7 +146,7 @@ class Animate_celestial_objects_pygame():
         self.surface.fill(pygame.Color('black'))
         for planet in self.planets:
                     if self.do_draw_tails:
-                self.draw_tail(planet)
+                        self.draw_tail(planet)
 
         for planet in self.planets:
             corrected_position = self.get_zoomed_coordinates(planet.position - self.Delta)
