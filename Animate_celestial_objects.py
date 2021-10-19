@@ -164,7 +164,7 @@ class Animate_celestial_objects():
         t_i_ns  = datetime.now()
         print(f'get delta t  {t_i_ns - t_f_cf}')
         for planet in self.planets:
-            planet.new_state_planet(delta_t)
+            planet.new_state(delta_t)
         t_f_ns = datetime.now()
         print(f'Calculate new state: {t_f_ns - t_i_ns}')
 
