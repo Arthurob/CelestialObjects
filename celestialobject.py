@@ -9,12 +9,68 @@ import random
 import string
 import tkinter as tk
 import math
-# import numba as nb
-# import webcolors
 
 class celestialobject:
+    """
+    A class that represents a Celestial object or body
 
-    def __init__(self, mass, color, canvas, start_position=np.zeros((2,)), start_velocity=np.zeros((2,)), name='', radius=0):
+
+    Attributes
+    ----------
+    mass : numerical
+        mass of the Celestial object
+    color : str
+        color for the Celestial object
+    canvas : tkinter.Canvas
+        Canvas on which the Celestial object is drawn
+    position: numpy array
+        The  position vector on the canvas
+    velocity: numpy array
+        The velocity vector
+    name: str
+        name of the Celestial object
+    radius: numerical
+        the size on canvas in pixels of the Celestial object
+    force: numpy array
+        The total force acting on the Celestial object
+    acceleration: numpy array
+        The  acceleration vector
+    speed_history: array
+        keeps history of the velocity
+    acceleration_history: array
+        keeps history of the accelaration
+    phi_history
+        keeps history of the phic, the angle between the accelaration
+        and velocity vectors
+    oval: tkinter oval
+        The graphical representation of the Celestial object on the Tkinter canvas
+    force_arrow: tkinter line
+        The graphical representation of the force_arrow
+    keep_history = boolean
+        keep history of the speed, acceleration and phi?
+
+
+    """
+
+
+    def __init__(self, mass, color, canvas, start_position=np.zeros((2,)),
+                 start_velocity=np.zeros((2,)), name='', radius=0):
+        """
+        mass : numerical
+        mass of the Celestial object
+        color : str
+            color for the Celestial object
+        canvas : tkinter.Canvas
+            Canvas on which the Celestial object is drawn
+        start_position: numpy array
+            The starting  position vector on the canvas
+        start_velocity: numpy array
+            The starting velocity vector
+        name: str
+            name of the Celestial object
+        radius: numerical
+            the size on canvas in pixels of the Celestial object
+        """
         self.mass = mass
         if radius == 0:
             self.radius = max(int(3*math.sqrt(mass)), 1)
@@ -45,10 +101,36 @@ class celestialobject:
 
 
     def reset_force(self):
+        """
+        Sets the force vector to 0
+
+        Returns
+        -------
+        None.
+
+        """
         self.force = np.zeros((2,))
 
     # def update_parameters(self, position. )
     def move_object(self, change, draw_tail=True, color_trail=''):
+        """
+        Moves the oval representing the Celestial object on the canvas
+
+        Parameters
+        ----------
+        change : nummerical
+            How much the Celestial objects should move on the canvas
+        draw_tail : Bool, optional
+            If the tail should be drawn. The default is True.
+        color_trail : TYPE, optional
+            Color of the tail. The default is '' which leads to color of the
+            Celestial objects.
+
+        Returns
+        -------
+        None.
+
+        """
         self.canvas.move(self.oval, change[0], change[1])
         self.canvas_position = self.get_center_oval()
         if draw_tail: # and norm(change)>.5:
