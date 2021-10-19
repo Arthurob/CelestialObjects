@@ -22,6 +22,10 @@ from datetime import datetime
 
 
 class Animate_celestial_objects():
+    """
+    Animates the celestial objects and creates the GUI to control the physics of the animation
+
+    """
 
 
     def __init__(self):

@@ -56,8 +56,12 @@ class celestialobject:
     def __init__(self, mass, color, canvas, start_position=np.zeros((2,)),
                  start_velocity=np.zeros((2,)), name='', radius=0):
         """
+        Initiates the Celstial Object
+
+        Parameters
+        ----------
         mass : numerical
-        mass of the Celestial object
+            mass of the Celestial object
         color : str
             color for the Celestial object
         canvas : tkinter.Canvas
@@ -70,6 +74,11 @@ class celestialobject:
             name of the Celestial object
         radius: numerical
             the size on canvas in pixels of the Celestial object
+
+        Returns
+        -------
+        None.
+
         """
         self.mass = mass
         if radius == 0:
@@ -152,7 +161,20 @@ class celestialobject:
     def get_phi(self):
         return angle_between(self.acceleration, self.velocity)
 
-    def new_state_planet(self, delta_t):
+    def new_state(self, delta_t):
+        """
+
+
+        Parameters
+        ----------
+        delta_t : numerical
+            the time interval between two states.
+
+        Returns
+        -------
+        None.
+
+        """
         self.acceleration = self.force / self.mass
         self.velocity += self.acceleration*delta_t
         self.position += self.velocity*delta_t
@@ -162,23 +184,72 @@ class celestialobject:
             self.phi_history.append(self.get_phi())
 
     def draw_acceleration_arrow(self, correction=np.zeros((2,)), factor = 160):
-        # if factor != 0:
+        """
+        Draws the accelaration vector as an arrow on the screen
+
+        Parameters
+        ----------
+        correction : nummerical, optional
+            Correction of the vector in position. The default is np.zeros((2,)).
+        factor : nummerical, optional
+            used to enlarge the vector arrow w.r.t. . The default is 160.. The default is 160.
+
+        Returns
+        -------
+        None.
+
+        """
+
+        if factor != 0:
             start_point = self.canvas_position
             end_point = start_point + (self.acceleration + correction) * factor
-            # print(start_point, (start_point + self.acceleration), end_point)
             self.canvas.coords(self.force_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
     def draw_velocity_arrow(self, correction=np.zeros((2,)), factor = 30):
-        # if factor != 0:
+        """
+        Draws the velocity vector as an arrow on the screen
+
+        Parameters
+        ----------
+        correction : nummerical, optional
+            Correction of the vector in position. The default is np.zeros((2,)).
+        factor : nummerical, optional
+            used to enlarge the vector arrow w.r.t. . The default is 160. The default is 30.
+
+        Returns
+        -------
+        None.
+
+        """
+        if factor != 0:
             start_point = self.canvas_position
             end_point = start_point + (self.velocity + correction) * factor
             self.canvas.coords(self.velocity_arrow,start_point[0], start_point[1], end_point[0], end_point[1])
 
 
 def set_force_2_celestialobjects(celestialobject_1, celestialobject_2, G, alpha=2):
+    """
+    Calculates and assigns the gravitational forces betwene two celestial bodies
+
+    Parameters
+    ----------
+    celestialobject_1 : celestialobject
+        DESCRIPTION.
+    celestialobject_2 : celestialobject
+        DESCRIPTION.
+    G : nummerical
+        DESCRIPTION.
+    alpha : TYPE, optional
+        DESCRIPTION. The default is 2.
+
+    Returns
+    -------
+    None.
+
+    """
     distance = celestialobject_2.position - celestialobject_1.position
-    # F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  np.sqrt(distance[0]*distance[0]+distance[1]*distance[1])**(alpha+1) * distance
-    F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  norm(distance)**(alpha+1) * distance
+    F_12 = G * celestialobject_1.mass * celestialobject_2.mass/ (
+        norm(distance)**(alpha+1) ) * distance
     celestialobject_1.force = celestialobject_1.force + F_12
     celestialobject_2.force = celestialobject_2.force - F_12
 
@@ -186,14 +257,13 @@ def unit_vector(vector):
     return vector / norm(vector)
 
 
-def angle_between( v1, v2):
+def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
-    return np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0))
+    return np.arccos(inner(v1_u, v2_u))
 
-# @nb.njit(fastmath=True)
-def norm(l):
-    s = 0.
-    for i in range(l.shape[0]):
-        s += l[i]**2
-    return np.sqrt(s)
+def norm(v):
+    return np.sqrt(np.inner(v, v))
+
+def inner(u, v):
+    return np.inner(u, v)
