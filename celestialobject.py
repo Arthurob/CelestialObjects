@@ -229,7 +229,7 @@ class celestialobject:
 
 def set_force_2_celestialobjects(celestialobject_1, celestialobject_2, G, alpha=2):
     """
-    Calculates and assigns the gravitational forces betwene two celestial bodies
+    Calculates and updates the gravitational forces between two celestial bodies
 
     Parameters
     ----------
@@ -253,17 +253,14 @@ def set_force_2_celestialobjects(celestialobject_1, celestialobject_2, G, alpha=
     celestialobject_1.force = celestialobject_1.force + F_12
     celestialobject_2.force = celestialobject_2.force - F_12
 
-def unit_vector(vector):
-    return vector / norm(vector)
+def unit_vector(v):
+    return v / norm(v)
 
 
-def angle_between(v1, v2):
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
-    return np.arccos(inner(v1_u, v2_u))
+def angle_between(v, u):
+    v = unit_vector(v)
+    u = unit_vector(u)
+    return np.arccos(np.inner(v, u))
 
 def norm(v):
-    return np.sqrt(np.inner(v, v))
-
-def inner(u, v):
-    return np.inner(u, v)
+    return np.sqrt(np.inner(v, v)) #Faster than np.linalg.norm(x)

@@ -15,9 +15,6 @@ from tkinter import ttk
 import math
 import celestialobject as co
 import numpy as np
-import time
-import random
-from datetime import datetime
 
 
 
@@ -35,6 +32,15 @@ class Animate_celestial_objects():
 
 
     def start(self):
+        """
+        Setup all the variables
+
+        Returns
+        -------
+        None.
+
+        """
+
         self.root = tk.Tk()
         # self.root.resizable(0,0)
         # self.root.wm_attributes("-topmost", 1)
@@ -57,9 +63,9 @@ class Animate_celestial_objects():
         self.zoom_factor = .05
         self.current_zoom_factor = 1
         self.center = [500.,500.] # np.array([self.canvas.winfo_width(), self.canvas.winfo_height()])/2
-        self.planets = []
+        self.celestial_objects = []
         self.dropdown_list = ['COM','Absolute']
-        self.draw_graph = False
+        self.draw_graph = True
         self.center_CO = tk.StringVar()
         self.center_CO.set('COM')
         self.arrow_factor_velocity = tk.IntVar()
@@ -72,7 +78,7 @@ class Animate_celestial_objects():
 
         self.init_UI()
         self.running = False
-        self.initialise_planets()
+        self.initialise_celestial_objects()
         self.step = 0
         self.celestial_initizalized = True
         self.next_step()
@@ -80,61 +86,106 @@ class Animate_celestial_objects():
 
 
 
-    def initialise_planets(self):
-        G = self.G.get()
-        # self.planets.append( co.celestialobject(11, 'red', self.canvas, self.center, [0., 0.], 'planet1') )
-        self.planets.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'planet1') )
-        # self.planets.append( co.celestialobject(400, 'red', self.canvas, self.center, [0., 0.], 'planet1') )
-        # self.planets.append( co.celestialobject(11, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(self.G.get()*self.planets[0].mass/150), 0.], 'planet2') )
-        # self.planets.append( co.celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(G*self.planets[0].mass/150), 0.], 'planet3') )
-        # # self.planets.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [1, 0.1], 'planet4') )
-        # self.planets.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'planet4') )
-        self.planets.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'planet5') )
-        # self.planets.append( co.celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'planet6') )
-        self.planets.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'planetX') )
-        self.planets.append( co.celestialobject(10, 'gold', self.canvas, [500+60, 1000], [-5.1,1 + math.sqrt(G*250/60)], 'planetXMoon'))
-        self.planets.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.planets[0].mass/150), 0.1], 'planet2') )
-        self.planets.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.planets[0].mass/400)+1, -1], 'planet3') )
-        self.planets.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'planet4') )
+    def initialise_celestial_objects(self):
+        """
+        Create some celestial objects
 
-        self.planets_colors = [planet.color for planet in self.planets]
-        self.dropdown_list += self.planets_colors
+        Returns
+        -------
+        None.
+
+        """
+
+        G = self.G.get() # Get current value of G for seting up circulair orbits
+        # self.celestial_objects.append( co.celestialobject(11, 'red', self.canvas, self.center, [0., 0.], 'celestial_object1') )
+        self.celestial_objects.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'celestial_object1') )
+        # self.celestial_objects.append( co.celestialobject(400, 'red', self.canvas, self.center, [0., 0.], 'celestial_object1') )
+        # self.celestial_objects.append( co.celestialobject(11, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(self.G.get()*self.celestial_objects[0].mass/150), 0.], 'celestial_object2') )
+        # self.celestial_objects.append( co.celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(G*self.celestial_objects[0].mass/150), 0.], 'celestial_object3') )
+        # # self.celestial_objects.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [1, 0.1], 'celestial_object4') )
+        # self.celestial_objects.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'celestial_object4') )
+        self.celestial_objects.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'celestial_object5') )
+        # self.celestial_objects.append( co.celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'celestial_object6') )
+        self.celestial_objects.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'celestial_objectX') )
+        self.celestial_objects.append( co.celestialobject(10, 'gold', self.canvas, [500+60, 1000], [-5.1,1 + math.sqrt(G*250/60)], 'celestial_objectXMoon'))
+        self.celestial_objects.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.celestial_objects[0].mass/150), 0.1], 'celestial_object2') )
+        self.celestial_objects.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.celestial_objects[0].mass/400)+1, -1], 'celestial_object3') )
+        self.celestial_objects.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'celestial_object4') )
+
+        self.celestial_objects_colors = [celestial_object.color for celestial_object in self.celestial_objects]
+        self.dropdown_list += self.celestial_objects_colors
         menu = self.dropdown_center['menu']
-        for color in self.planets_colors:
+        for color in self.celestial_objects_colors:
             menu.add_command(label=color, command=lambda value=color: self.center_CO.set(value))
-        self.color_planet = dict(zip(self.planets_colors, self.planets))
-        print(list(self.color_planet))
-        # create COm marker
+        self.color_celestial_object = dict(zip(self.celestial_objects_colors, self.celestial_objects))
+        # create center of mass marker
         self.coordsCOM = self.get_coords_com()
         self.COM = self.canvas.create_line(self.coordsCOM[0]-5, self.coordsCOM[1]-5, self.coordsCOM[0]+5, self.coordsCOM[1]+5, self.coordsCOM[0], self.coordsCOM[1], self.coordsCOM[0]-5, self.coordsCOM[1]+5, self.coordsCOM[0]+5, self.coordsCOM[1]-5, fill='white')
         self.next_step()
-        print(self.planets[2].get_phi())
 
     def get_coords_com(self):
-        return sum([planet.mass*planet.position for planet in self.planets]) / sum([planet.mass for planet in self.planets])
+        """
+        Get the center of mass (com) coordinates
 
-    # def create_reandom_planet(range_mass=[1,20], range_size=[1,20], range_location=[100,800], range_velocity=[-5,5]):
-    #     co.celestialobject(9, 8, self.center, [-.05, 0])
+        Returns
+        -------
+        array
+            Get the center of mass (com) coordinates
+
+        """
+        return sum([celestial_object.mass*celestial_object.position for celestial_object in self.celestial_objects]) / sum([celestial_object.mass for celestial_object in self.celestial_objects])
 
 
+    def set_new_state_celestial_objects(self, celestial_object):
+        """
+        Parameters
+        ----------
+        celestial_object : celestial_object
+            Calculate and set the new state (acceleration, velocity and position).
 
-    def new_state_planets(self, planet):
-        acceleration = planet.force / planet.mass
+        Returns
+        -------
+        None.
+
+        """
+
+        acceleration = celestial_object.force / celestial_object.mass
         delta_t = self.Delta_t.get()
-        planet.velocity += acceleration*delta_t
-        planet.position += planet.velocity*delta_t
+        celestial_object.velocity += acceleration*delta_t
+        celestial_object.position += celestial_object.velocity*delta_t
 
 
     def calculate_forces(self):
+        """
+        Calculate all the forces between the Celestial objects
+
+        Returns
+        -------
+        None.
+
+        """
         alpha = self.alpha.get()
         G = self.G.get()
-        for planet in self.planets:
-            planet.reset_force()
-        for i in range(len(self.planets)-1):
-            for j in range(i+1, len(self.planets)):
-                co.set_force_2_celestialobjects(self.planets[i], self.planets[j], G, alpha)
+        for celestial_object in self.celestial_objects:
+            celestial_object.reset_force()
+        for i in range(len(self.celestial_objects)-1):
+            for j in range(i+1, len(self.celestial_objects)):
+                co.set_force_2_celestialobjects(self.celestial_objects[i], self.celestial_objects[j], G, alpha)
 
-    def set_deltas(self, delta_t):
+    def set_corrections(self, delta_t):
+        """
+        Set the corrections for the graphics depending on which celestial objects is cenetered
+
+        Parameters
+        ----------
+        delta_t : numerical
+            the time interval
+
+        Returns
+        -------
+        None.
+
+        """
         option = self.center_CO.get()
         if option == 'COM':
             self.Delta = self.coordsCOMNew - self.coordsCOM
@@ -148,90 +199,104 @@ class Animate_celestial_objects():
             self.correction_velocity = np.zeros((2,))
             self.correction_acceleration = np.zeros((2,))
         else:
-            planet = self.color_planet[option]
-            self.Delta = planet.velocity * delta_t
-            self.correction_velocity = -planet.velocity
-            self.correction_acceleration = -planet.acceleration
+            celestial_object = self.color_celestial_object[option]
+            self.Delta = celestial_object.velocity * delta_t
+            self.correction_velocity = -celestial_object.velocity
+            self.correction_acceleration = -celestial_object.acceleration
 
     def next_step(self):
-        t_i = datetime.now()
+        """
+        orchestrates the cqlculations and drawing of the next step/interval
+
+        Returns
+        -------
+        None.
+
+        """
         self.calculate_forces()
-        t_f_cf = datetime.now()
-        print(f'\n Calculate forces: {t_f_cf - t_i}')
         delta_t = self.Delta_t.get()
         self.time += delta_t
         self.time_list.append(self.time)
-        t_i_ns  = datetime.now()
-        print(f'get delta t  {t_i_ns - t_f_cf}')
-        for planet in self.planets:
-            planet.new_state(delta_t)
-        t_f_ns = datetime.now()
-        print(f'Calculate new state: {t_f_ns - t_i_ns}')
+        for celestial_object in self.celestial_objects:
+            celestial_object.new_state(delta_t)
 
         self.coordsCOMNew = self.get_coords_com()
-        self.set_deltas(delta_t)
+        self.set_corrections(delta_t)
         self.plot_speed.clear()
         self.plot_acceleration.clear()
         self.plot_phi.clear()
         self.length_list = len(self.time_list)
-        t_i_draw = datetime.now()
-        print(f'3  {t_i_draw - t_f_ns}')
-        for planet in self.planets:
-            change =  (planet.velocity*delta_t - self.Delta)*self.current_zoom_factor
-            planet.move_object(change, draw_tail=self.draw_tail)
-            planet.draw_acceleration_arrow(correction=self.correction_acceleration,
+        for celestial_object in self.celestial_objects:
+            change =  (celestial_object.velocity*delta_t - self.Delta)*self.current_zoom_factor
+            celestial_object.move_object(change, draw_tail=self.draw_tail)
+            celestial_object.draw_acceleration_arrow(correction=self.correction_acceleration,
                                            factor=self.arrow_factor_acceleration.get()*self.current_zoom_factor)
-            planet.draw_velocity_arrow(correction=self.correction_velocity,
+            celestial_object.draw_velocity_arrow(correction=self.correction_velocity,
                                        factor=self.arrow_factor_velocity.get()*self.current_zoom_factor )
 
-            self.update_data_graphs(planet)
+            self.update_data_graphs(celestial_object)
 
-        t_f_draw = datetime.now()
-        print(f'draw planets: {t_f_draw - t_i_draw}')
         if self.draw_graph:
             self.draw_graphs()
-        t_f_draw_graphs = datetime.now()
-        print(f'draw graphs: {t_f_draw_graphs - t_f_draw }')
+
 
         COM_change = (self.coordsCOMNew - self.coordsCOM - self.Delta)*self.current_zoom_factor
         self.canvas.move(self.COM, COM_change[0], COM_change[1])
         self.coordsCOM = self.coordsCOMNew
-        t_f_COM = datetime.now()
-        print(f'COM: {t_f_COM - t_f_draw_graphs}')
         # continue or pause loop
-        t_f = t_f_COM
-        if self.running:
-            print(f'Total1: {t_f-t_i}')
-            # self.canvas.itemconfig(
-            #     self.text_id3,
-            #     text=f'positions moon: oval={self.planets[3].get_center_oval()}, {self.planets[3].position}'
-            #    )
-            # print(f'Total2: {t_f-t_i}')
-            self.root.after(self.delay_slider.get()+1, self.next_step)
 
-    def update_data_graphs(self, planet):
+        if self.running:
+          self.root.after(self.delay_slider.get()+1, self.next_step)
+
+    def update_data_graphs(self, celestial_object):
+        """
+        update the plotted data of a celestial object
+        Parameters
+        ----------
+        celestial_object : celestial_object
+
+        Returns
+        -------
+        None.
+
+        """
         self.plot_speed.plot(
                  self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-                 planet.speed_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+                 celestial_object.speed_history[-min(self.length_list, MAX_PLOTLENGTH):], color=celestial_object.color)
 
         self.plot_acceleration.plot(
              self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-             planet.acceleration_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+             celestial_object.acceleration_history[-min(self.length_list, MAX_PLOTLENGTH):], color=celestial_object.color)
 
         self.plot_phi.plot(
              self.time_list[-min(self.length_list, MAX_PLOTLENGTH):],
-                planet.phi_history[-min(self.length_list, MAX_PLOTLENGTH):], color=planet.color)
+                celestial_object.phi_history[-min(self.length_list, MAX_PLOTLENGTH):], color=celestial_object.color)
 
     def draw_graphs(self):
+        """
+        Draw the graphs
+
+        Returns
+        -------
+        None.
+
+        """
         self.canvas_graph_speed.draw()
         self.canvas_graph_acceleration.draw()
         self.canvas_graph_phi.draw()
 
     def init_UI(self):
+        """
+        Initialize the UI
+
+        Returns
+        -------
+        None.
+
+        """
 
         # create frames
         self.frame_animation = tk.Frame(self.root, bd=1, relief="sunken")
-        # self.frame_controls = tk.Frame(self.root, bd=1, relief="sunken")
         self.frame_controls = ttk.Notebook(self.root)
 
         self.frame_animation.grid(row=0, column=0, rowspan=1, sticky='nsew')
@@ -257,11 +322,10 @@ class Animate_celestial_objects():
         self.frame_animation.grid_rowconfigure(0, weight=1)
         self.frame_animation.grid_columnconfigure(0, weight=1)
 
-         # This is what enables using the mouse:
         self.canvas.bind("<ButtonPress-1>", self.move_start)
         self.canvas.bind("<B1-Motion>", self.move_move)
         self.canvas.bind("<MouseWheel>",self.zoomer)
-        # Set default font
+
         self.default_font = tkFont.nametofont("TkDefaultFont")
         self.default_font.configure(size=7)
 
@@ -278,23 +342,48 @@ class Animate_celestial_objects():
 
         self.UI_frame_animation_controls()
 
-    def canvas_onclick(self, event):
-        self.canvas.itemconfig(
-            self.text_id,
-            text= f'You clicked at ({event.x}, {event.y})'
-        )
-        self.canvas.itemconfig(
-            self.text_id2,
-            text= f'You clicked at ({self.canvas.canvasx(event.x)}, {self.canvas.canvasy(event.y)})'
-        )
-    #move
+
     def move_start(self, event):
+        """
+        Used to drag on the canvas
+
+        Parameters
+        ----------
+        event : event
+            tkinter event
+
+        Returns
+        -------
+        None.
+
+        """
         self.canvas.scan_mark(event.x, event.y)
 
     def move_move(self, event):
+        """
+        Used to drag on the canvas
+
+        Parameters
+        ----------
+        event : event
+            tkinter event
+
+        Returns
+        -------
+        None.
+
+        """
         self.canvas.scan_dragto(event.x, event.y, gain=1)
 
     def pressed_tail(self):
+        """
+        Used to enable drawing the tails/trails of the celestial through the GUI button
+
+        Returns
+        -------
+        None.
+
+        """
         if self.draw_tail:
             self.button_tail.configure(relief=tk.RAISED)
         else:
@@ -304,6 +393,18 @@ class Animate_celestial_objects():
 
     #windows zoom
     def zoomer(self,event):
+        """
+        Zoom action
+
+        Parameters
+        ----------
+        event : event
+
+        Returns
+        -------
+        None.
+
+        """
         if (event.delta > 0):
             self.canvas.scale("all", event.x, event.y, (1+self.zoom_factor), (1+self.zoom_factor))
             self.current_zoom_factor *= (1+self.zoom_factor)
@@ -314,6 +415,14 @@ class Animate_celestial_objects():
 
 
     def UI_frame_animation_controls(self):
+        """
+        setup the controls frame
+
+        Returns
+        -------
+        None.
+
+        """
         # controls frame
         self.frame_controls = tk.Frame(self.root, width=200, height=self.height)
         self.frame_controls.grid(row=0, column=1, sticky='nw')
@@ -330,6 +439,16 @@ class Animate_celestial_objects():
         self.UI_graphs()
 
     def UI_physics_tab(self):
+        """
+        setup the tab that controls the variables that are used in the calculation of
+        the forces (G, delta_t, alpha)
+
+
+        Returns
+        -------
+        None.
+
+        """
         # play
         row=0
         self.play = tk.Button(self.tab_physics, text="play", command=self.do_play)
@@ -389,6 +508,14 @@ class Animate_celestial_objects():
         self.button_tail.grid(row=row, column=0, sticky='w')
 
     def UI_graphs(self):
+        """
+        Setup the UI that draws the graphs
+
+        Returns
+        -------
+        None.
+
+        """
         # graphs
         plt.style.use('ggplot')
         #speed
@@ -440,7 +567,7 @@ Interesting settings:
         self.Delta_t = .1
         self.G = 30
 self.center = np.array([500,500])
-        self.planet_1 = co.celestialobject(1, 10, self.center+np.array([0,0]))
-        self.planet_2 = co.celestialobject(1, 10, self.center+np.array([1,-50]),[.5,0])
+        self.celestial_object_1 = co.celestialobject(1, 10, self.center+np.array([0,0]))
+        self.celestial_object_2 = co.celestialobject(1, 10, self.center+np.array([1,-50]),[.5,0])
 
 """
