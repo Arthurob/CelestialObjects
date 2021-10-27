@@ -23,9 +23,7 @@ class Animate_celestial_objects_pygame():
 
         # Initialization
         pygame.init()
-        # self.screen = pygame.display.set_mode(SCREEN_SIZE)
-        self.screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE, pygame.HWSURFACE) #,  pygame.SRCALPHA)
-        # self.screen = pygame.display.set_mode((1000, 1000), pygame.SCALED)
+        self.screen = pygame.display.set_mode(SCREEN_SIZE, pygame.RESIZABLE)
         pygame.display.set_caption('Celestial objects')
         self.fps = pygame.time.Clock()
         self.pause = False
@@ -39,7 +37,6 @@ class Animate_celestial_objects_pygame():
         self.mainloop()
 
     def mainloop(self):
-        #Mainloop
         while True:
             for self.event in pygame.event.get():
                 if self.event.type == pygame.QUIT:
@@ -49,7 +46,6 @@ class Animate_celestial_objects_pygame():
             if not self.pause:
                 self.next_step()
                 self.draw_all()
-                # self.fps.tick(60)
                 pygame.time.delay(self.delay)
 
     def handle_events(self):
@@ -67,11 +63,6 @@ class Animate_celestial_objects_pygame():
                 self.zoom_factor *= (1+self.event.y*self.zoom_step_factor)
                 x, y = pygame.mouse.get_pos()
                 self.zoom_position = np.array([x,y]).astype(np.float32)
-
-
-
-
-
 
     def init_vars(self):
         # variables
@@ -156,9 +147,6 @@ class Animate_celestial_objects_pygame():
 
             if self.do_draw_arrows:
                 self.draw_arrows(planet, corrected_position)
-
-
-
         self.screen.blit(self.surface, (0, 0))
         pygame.display.update()
 

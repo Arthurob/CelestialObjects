@@ -8,8 +8,6 @@ import numpy as np
 import random
 import string
 import math
-# import numba as nb
-# import webcolors
 
 class celestialobject:
 
@@ -42,16 +40,8 @@ class celestialobject:
     def reset_force(self):
         self.force = np.zeros((2,))
 
-    # def update_parameters(self, position. )
     def update_tail(self, tail_length=1000):
-        # position = np.copy(self.position)
         self.tail.append(np.copy(self.position))
-        # if len(self.tail) == 0:
-        #     self.tail.append(position)
-        # else:
-        #     # if position != self.tail[-1]:
-        #     self.tail.append(position)
-
         if len(self.tail) > tail_length:
             del self.tail[0]
 
@@ -131,7 +121,7 @@ def set_new_state(celestialobjects, G, alpha, delta_t, collisionsOn=True, enterI
     for planet in celestialobjects:
         planet.reset_force()
 
-    if len(celestialobjects)>1:
+    if celestialobjects:
         for i, planet1 in enumerate(celestialobjects[:-1]):
             for planet2 in celestialobjects[i+1::]:
                 collision = set_forces_2celestialobjects(
@@ -149,11 +139,7 @@ def unit_vector(vector):
 def angle_between(v1, v2):
     v1_u = unit_vector(v1)
     v2_u = unit_vector(v2)
-    return np.arccos(inner(v1_u, v2_u))
+    return np.arccos(np.inner(v1_u, v2_u))
 
-# @nb.njit(fastmath=True)
 def norm(v):
     return np.sqrt(np.inner(v, v))
-
-def inner(u, v):
-    return np.inner(u, v)
