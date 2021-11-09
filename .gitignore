@@ -130,4 +130,5 @@ dmypy.json
 
 # Profiler results
 *.Result
+.pylint.d/celestialobject1.stats
 *.stats
