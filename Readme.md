@@ -13,14 +13,16 @@ random
 string
 
 Main branch:
-tkinter
-
-Pygame branch:
 pygame
 
 
+Pygame branch:
+tkinter
+
+
 ## Branches
-The main branch currently uses Tkinter, but due to performance issues a pygame branch has been created, this ssems quicker but lacks the interactive settings, once those are in place pygame will be used in the main branch
+The main branch currently uses pygame. Even though the Tkinter version contains more feautures,
+performance issues, cleaner coding and more control favours the pygame as graphics intercace.
 
 
 ## License for all .py files
