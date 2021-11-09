@@ -121,7 +121,7 @@ def set_new_state(celestialobjects, G, alpha, delta_t, collisionsOn=True, enterI
     for planet in celestialobjects:
         planet.reset_force()
 
-    if celestialobjects:
+    if len(celestialobjects) > 1:
         for i, planet1 in enumerate(celestialobjects[:-1]):
             for planet2 in celestialobjects[i+1::]:
                 collision = set_forces_2celestialobjects(
