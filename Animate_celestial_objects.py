@@ -17,7 +17,6 @@ import celestialobject as co
 import numpy as np
 
 
-
 class Animate_celestial_objects():
     """
     Animates the celestial objects and creates the GUI to control the physics of the animation
@@ -59,7 +58,7 @@ class Animate_celestial_objects():
         self.Delta_t = tk.DoubleVar()
         self.Delta_t.set(.1)
         self.G = tk.IntVar()
-        self.G.set(10)
+        self.G.set(20)
         self.zoom_factor = .05
         self.current_zoom_factor = 1
         self.center = [500.,500.] # np.array([self.canvas.winfo_width(), self.canvas.winfo_height()])/2
@@ -96,21 +95,212 @@ class Animate_celestial_objects():
 
         """
 
-        G = self.G.get() # Get current value of G for seting up circulair orbits
-        # self.celestial_objects.append( co.celestialobject(11, 'red', self.canvas, self.center, [0., 0.], 'celestial_object1') )
-        self.celestial_objects.append( co.celestialobject(1000, 'yellow', self.canvas, self.center, [0., 0.], 'celestial_object1') )
-        # self.celestial_objects.append( co.celestialobject(400, 'red', self.canvas, self.center, [0., 0.], 'celestial_object1') )
-        # self.celestial_objects.append( co.celestialobject(11, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(self.G.get()*self.celestial_objects[0].mass/150), 0.], 'celestial_object2') )
-        # self.celestial_objects.append( co.celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(G*self.celestial_objects[0].mass/150), 0.], 'celestial_object3') )
-        # # self.celestial_objects.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [1, 0.1], 'celestial_object4') )
-        # self.celestial_objects.append( co.celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'celestial_object4') )
-        self.celestial_objects.append( co.celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'celestial_object5') )
-        # self.celestial_objects.append( co.celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'celestial_object6') )
-        self.celestial_objects.append( co.celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'celestial_objectX') )
-        self.celestial_objects.append( co.celestialobject(10, 'gold', self.canvas, [500+60, 1000], [-5.1,1 + math.sqrt(G*250/60)], 'celestial_objectXMoon'))
-        self.celestial_objects.append( co.celestialobject(1, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.celestial_objects[0].mass/150), 0.1], 'celestial_object2') )
-        self.celestial_objects.append( co.celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.celestial_objects[0].mass/400)+1, -1], 'celestial_object3') )
-        self.celestial_objects.append( co.celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'celestial_object4') )
+        G = self.G.get() # Get current value of G for seting up circulair trajectorys
+        self.celestial_objects.append( 
+            co.Celestialobject(
+                1000, 
+                'yellow', 
+                self.canvas, 
+                self.center+np.array([-150., 0.]), 
+                np.array([0, 0.]), 
+                'celestial_object1'
+                )
+                                      
+            )
+        
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            700, 
+            'magenta', 
+            self.canvas, 
+            self.center+np.array([150., 0.]),
+            co.Trajectory( 
+                self.celestial_objects[0], G
+                ),
+                'celestial_object2'
+                                  )
+                            )
+        #Ellipse
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            200, 
+            'blue', 
+            self.canvas, 
+            self.center+np.array([800, -200]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], G,
+                eccentricity=.7, angle=math.pi/11,direction = -1
+                ),
+                'celestial_object4'
+                                  )
+                            )
+        # planet+two moons
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            100, 
+            'red', 
+            self.canvas, 
+            self.center+np.array([0., 1500]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], G
+                ),
+                'planet'
+                                  )
+                            )
+        
+
+        
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            10, 
+            'gold', 
+            self.canvas, 
+            self.center+np.array([150, 1500]),
+            co.Trajectory( 
+                self.celestial_objects[3], G
+                ),
+                'moon'
+                                  )
+                            )
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            1, 
+            'green', 
+            self.canvas, 
+            self.center+np.array([150, 1500+10]),
+            co.Trajectory( 
+                self.celestial_objects[4], G
+                ),
+                'moon 2'
+                                  )
+                            )
+        #binary planets
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            100, 
+            'coral', 
+            self.canvas, 
+            self.center+np.array([-850,250]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], G,
+                direction=-1
+                ),
+                'planet'
+                                  )
+                            )        
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            76, 
+            'orange', 
+            self.canvas, 
+            self.center+np.array([-870,100]),
+            co.Trajectory( 
+                self.celestial_objects[6], G,
+                direction=-1
+                ),
+                'planet'
+                                  )
+                            )
+        
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            1, 
+            'orange', 
+            self.canvas, 
+            self.center+np.array([-8070,100]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], G,
+                direction=-1, eccentricity=2
+                ),
+                'planet'
+                                  )
+                            )
+
+        # # self.celestial_objects.append( co.Celestialobject(400, 'red', self.canvas, self.center+np.array([-100,-60]), [-10, 3], 'celestial_object1') )
+        # # # self.celestial_objects.append( co.Celestialobject(11, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(self.G.get()*self.celestial_objects[0].mass/150), 0.], 'celestial_object2') )
+        # # self.celestial_objects.append( co.Celestialobject(3, 'orange', self.canvas, self.center+np.array([0,160]), [-math.sqrt(G*self.celestial_objects[0].mass/150), 0.], 'celestial_object3') )
+        # # # # self.celestial_objects.append( co.Celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [1, 0.1], 'celestial_object4') )
+        # # # self.celestial_objects.append( co.Celestialobject(20, 'green', self.canvas, self.center+np.array([-80,40]), [-1, 10], 'celestial_object4') )
+        # # self.celestial_objects.append( co.Celestialobject(50, 'purple', self.canvas, [0., 0.], [.1, .05], 'celestial_object5') )
+        # # # self.celestial_objects.append( co.Celestialobject(268, 'magenta', self.canvas, [1000, 1000], [-.1, -.1], 'celestial_object6') )
+        # # self.celestial_objects.append( co.Celestialobject(10, 'blue', self.canvas, self.center+np.array([0,-150]), [math.sqrt(G*self.celestial_objects[0].mass/150), 0.1], 'celestial_object2') )
+        # # self.celestial_objects.append( co.Celestialobject(5, 'green', self.canvas, self.center+np.array([0,400]), [math.sqrt(G*self.celestial_objects[0].mass/400)+1, -1], 'celestial_object3') )
+        # # self.celestial_objects.append( co.Celestialobject(20, 'coral', self.canvas, self.center+np.array([-80,40]), [-1, 13], 'celestial_object4') )
+        # # self.celestial_objects.append( co.Celestialobject(250, 'brown', self.canvas, [500, 1000], [-5, 1], 'celestial_objectX') )
+        # # self.celestial_objects.append( co.Celestialobject(10, 'gold', self.canvas, [500+60, 1000], [-5.1,1 + math.sqrt(G*250/60)], 'celestial_objectXMoon'))
+        # m1 = 100
+        # m2 = 5
+        # r = 1000
+        # #Circulair        
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(5, 'blue', self.canvas, 
+        #                        self.center+np.array([r,-100]), [0.,  math.sqrt(G*m1*m1/(r*(m1+m2)))], 
+        #                        'celestial_object2') 
+        #     )
+        #planet+two moons
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(100, 'red', self.canvas, 
+        #                         self.center+np.array([0,r]), [0., 0.], 
+        #                         'celestial_object1',
+        #                         trajectory={'name':'circulair',
+        #                                     'orbited celestial objects': self.celestial_objects[0:2], 
+        #                                     'G':G, 
+        #                                     'direction': 1}
+        #                         ) 
+        #     )
+
+        
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(m2, 'blue', self.canvas, 
+        #                         self.center+np.array([50,r]), [0., 0.], 
+        #                         'celestial_object2',
+        #                         trajectory={'name':'circulair',
+        #                                     'orbited celestial objects': self.celestial_objects[3], 
+        #                                     'G':G, 
+        #                                     'direction': -1})
+        #     )
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(1, 'green', self.canvas, 
+        #                         self.center+np.array([10,r+60]), [0., 0.], 
+        #                         'celestial_object2',
+        #                         trajectory={'name':or'circulair',
+        #                                     'orbited celestial objects': self.celestial_objects[3:5], 
+        #                                     'G':G, 
+        #                                     'direction': 1})
+        #     )
+        # #binary planets
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(75, 'coral', self.canvas, 
+        #                         self.center+np.array([-450,250]), [0., 0.], 
+        #                         'celestial_object1',
+        #                         trajectory={'name':'circulair',
+        #                                     'orbited celestial objects': self.celestial_objects[0:2], 
+        #                                     'G':G, 
+        #                                     'direction': 1}
+        #                         ) 
+        #     )        
+        # self.celestial_objects.append( 
+        #     co.Celestialobject(70, 'gold', self.canvas, 
+        #                         self.center+np.array([-470,160]), [0., 0.], 
+        #                         'celestial_object2',
+        #                         trajectory={'name':'circulair',
+        #                                     'orbited celestial objects': self.celestial_objects[6], 
+        #                                     'G':G, 
+        #                                     'direction': -1})
+        #     )
+
+        
+        # # self.celestial_objects.append( 
+        # #     co.Celestialobject(m, 'yellow', self.canvas, 
+        # #                         self.center+np.array([-]), [0., -math.sqrt(G*m/(2*r))], 
+        # #                         'celestial_object1') 
+        # #     )
+        # # self.celestial_objects.append( 
+        # #     co.Celestialobject(m, 'green', self.canvas, 
+        # #                         self.center+np.array([r,0]), [0.,  math.sqrt(G*m/(2*r))], 
+        # #                         'celestial_object2') 
+        # #     )
+        
 
         self.celestial_objects_colors = [celestial_object.color for celestial_object in self.celestial_objects]
         self.dropdown_list += self.celestial_objects_colors
@@ -119,7 +309,7 @@ class Animate_celestial_objects():
             menu.add_command(label=color, command=lambda value=color: self.center_CO.set(value))
         self.color_celestial_object = dict(zip(self.celestial_objects_colors, self.celestial_objects))
         # create center of mass marker
-        self.coordsCOM = self.get_coords_com()
+        self.coordsCOM = co.get_center_of_mass_coordinates(self.celestial_objects)
         self.COM = self.canvas.create_line(self.coordsCOM[0]-5, self.coordsCOM[1]-5, self.coordsCOM[0]+5, self.coordsCOM[1]+5, self.coordsCOM[0], self.coordsCOM[1], self.coordsCOM[0]-5, self.coordsCOM[1]+5, self.coordsCOM[0]+5, self.coordsCOM[1]-5, fill='white')
         self.next_step()
 
@@ -220,7 +410,7 @@ class Animate_celestial_objects():
         for celestial_object in self.celestial_objects:
             celestial_object.new_state(delta_t)
 
-        self.coordsCOMNew = self.get_coords_com()
+        self.coordsCOMNew = co.get_center_of_mass_coordinates(self.celestial_objects)
         self.set_corrections(delta_t)
         self.plot_speed.clear()
         self.plot_acceleration.clear()
@@ -475,7 +665,7 @@ class Animate_celestial_objects():
         # delta_t
         row+=1
         self.Delta_t_slider = tk.Scale(
-            self.tab_physics, from_=-5, to=5, length = 200, tickinterval=1, resolution=.1,
+            self.tab_physics, from_=-10, to=10, length = 200, tickinterval=2, resolution=.1,
             orient=tk.HORIZONTAL, variable=self.Delta_t)
         self.Delta_t_slider.grid(row=row, column=0, sticky='w')
 
@@ -496,7 +686,7 @@ class Animate_celestial_objects():
         # delta_t
         row+=1
         self.arrow_factor_acceleration_slider = tk.Scale(
-            self.tab_physics, from_=0, to=300, length = 200, tickinterval=50, resolution=5,
+            self.tab_physics, from_=0, to=1000, length = 200, tickinterval=100, resolution=5,
             orient=tk.HORIZONTAL, variable=self.arrow_factor_acceleration)
         self.arrow_factor_acceleration_slider.grid(row=row, column=0, sticky='w')
 
@@ -567,7 +757,7 @@ Interesting settings:
         self.Delta_t = .1
         self.G = 30
 self.center = np.array([500,500])
-        self.celestial_object_1 = co.celestialobject(1, 10, self.center+np.array([0,0]))
-        self.celestial_object_2 = co.celestialobject(1, 10, self.center+np.array([1,-50]),[.5,0])
+        self.celestial_object_1 = co.Celestialobject(1, 10, self.center+np.array([0,0]))
+        self.celestial_object_2 = co.Celestialobject(1, 10, self.center+np.array([1,-50]),[.5,0])
 
 """
