@@ -16,8 +16,8 @@ class Trajectory:
             existing celestial objects.
       Attributes
     ----------                      
-    orbited_celestial_objects: array of celestial bodies
-      celestial bodies that the trajectory should be around, 
+    orbited_celestial_objects: List of the Celestial objects
+    which the new Celestial orbit will initially orbit. 
     G: numerical value gravitational constant,
     direction: numerical 
         direction(1 for clockwise, -1 for counterclockwise)]
@@ -51,8 +51,6 @@ class Celestialobject():
         mass of the Celestial object
     color : str
         color for the Celestial object
-    canvas : tkinter.Canvas
-        Canvas on which the Celestial object is drawn
     position: numpy array
         The  position vector on the canvas
     velocity: numpy array
@@ -70,12 +68,6 @@ class Celestialobject():
     acceleration_history: array
         keeps history of the accelaration
     phi_history
-        keeps history of the phic, the angle between the accelaration
-        and velocity vectors
-    oval: tkinter oval
-        The graphical representation of the Celestial object on the Tkinter canvas
-    force_arrow: tkinter line
-        The graphical representation of the force_arrow
     keep_history = boolean
         keep history of the speed, acceleration and phi?
     """
@@ -92,8 +84,6 @@ class Celestialobject():
            mass of the Celestial object
        color : str
            color for the Celestial object
-       canvas : tkinter.Canvas
-           Canvas on which the Celestial object is drawn
        position: numpy array
            The starting  position vector on the canvas
        velocity: numpy array
@@ -102,8 +92,6 @@ class Celestialobject():
            name of the Celestial object
        radius: numerical
            the size on canvas in pixels of the Celestial object
-       trajectory: dict 
-           If a certain trajectory is 
        Returns
        -------
        None.
@@ -136,6 +124,31 @@ class Celestialobject():
                  position,
                  trajectory:Trajectory,
                  name:str = '', radius:float = 0):
+        """
+        A factory method to iniate a Celestial object using a trajectory around
+        one or more Celestial objects
+
+        Parameters
+        ----------
+        cls : TYPE
+            DESCRIPTION.
+        mass : numerical
+            mass of the Celestial object
+        color : str
+            color for the Celestial object
+        position: numpy array
+            The starting  position vector on the canvas
+        name: str
+            name of the Celestial object
+        radius: numerical
+            the size of the Celestial object on the screen in pixels 
+
+        Returns
+        -------
+        celestialobject : Celestialobject
+    
+
+        """
         celestialobject = Celestialobject(mass, color,
                     position,
                     np.zeros((2,)),
@@ -143,6 +156,16 @@ class Celestialobject():
         velocity = celestialobject.get_velocity_for_trajectory(trajectory)
         celestialobject.velocity = velocity
         return celestialobject
+    
+    def get_velocity_for_trajectory(self, trajectory:Trajectory):
+        velocity = np.zeros((2,))
+        if trajectory.eccentricity == -1:
+            print("Not a possible eccentricty value")
+        elif trajectory.eccentricity == 0:
+            velocity =  self.get_velocity_circulair_trajectory(trajectory)
+        else:
+            velocity = self.get_velocity_noncircular_trajectory(trajectory)
+        return velocity
     
     def get_velocity_circulair_trajectory(self, trajectory:Trajectory):
        """
@@ -176,7 +199,7 @@ class Celestialobject():
        v_total = v_cm + v_trajectory_cartesian
        return v_total
    
-    def get_velocity_trajectory(self, trajectory:Trajectory):
+    def get_velocity_noncircular_trajectory(self, trajectory:Trajectory):
        """
        Calculates the required velocity for a celestial object to 
        make a circular trajectory around one or more celestial objects.
@@ -184,7 +207,7 @@ class Celestialobject():
        other celestial trajectorys.
        Parameters
        ----------
-       trajectored_celestial_objects : Trajectory
+       trajectory : Trajectory
            The trajectory the celestial body will initially set out.
        Returns
        -------
@@ -198,12 +221,11 @@ class Celestialobject():
        e = trajectory.eccentricity
        sign = trajectory.direction
        alpha = 1 + e * sign * math.cos(theta)
-       a = r * alpha / (1-e*e)
+       a = norm(r) * alpha / (1-e*e)
        beta = a*(1-e*e)
        v_factor = math.sqrt(2 * trajectory.G * m_cm / beta)
        v_r = v_factor  * e * math.sin(theta)
        v_theta = v_factor * alpha
-       coords_2 = self.center+np.array([r,0])
        r_vec = self.center - coords_2
        phi = math.atan2(r_vec[1], r_vec[0])
        e_r = np.array([np.cos(phi), np.sin(phi)])
@@ -213,15 +235,40 @@ class Celestialobject():
        return velocity
    
     def get_parameters_trajectory(self, trajectory:Trajectory):
-        r_cm = np.array(
+        """
+        Calculates important parameters need to for calculations in the trajectory
+
+        Parameters
+        ----------
+        trajectory : Trajectory
+            DESCRIPTION.
+
+        Returns
+        -------
+        r_cm : numpy array
+        The postition vector of the center of mass of the Celestial objects
+        which the new Celestial orbit will -initially - orbit.
+        v_cm : numpy array
+            DESCRIPTION.
+        m_cm : numerical
+            Th.
+        r : numerical
+            DESCRIPTION.
+
+        """
+        poistion_center_of_mass = np.array(
             get_center_of_mass_coordinates(trajectory.orbited_celestial_objects)
             )
-        v_cm = np.array(
+        velocity_center_of_mass = np.array(
             get_center_of_mass_velocity(trajectory.orbited_celestial_objects)
             )
-        m_cm = sum([planet.mass for planet in trajectory.orbited_celestial_objects])
-        r = self.position - r_cm
-        return r_cm, v_cm, m_cm, r 
+        mass_orbited_celestial_objects = sum(
+            [planet.mass for planet in trajectory.orbited_celestial_objects]
+            )
+        positiondiff_coobject_com = self.position - poistion_center_of_mass
+        return (poistion_center_of_mass, velocity_center_of_mass,
+    mass_orbited_celestial_objects, positiondiff_coobject_com )
+    
     def reset_force(self):
         self.force = np.zeros((2,))
 
@@ -241,6 +288,20 @@ class Celestialobject():
         return angle_between(self.acceleration, self.velocity)
 
     def new_state_planet(self, delta_t):
+        """
+        Calculates and sets the vector quantities of the new future state of a 
+        Celestial object 
+
+        Parameters
+        ----------
+        delta_t : nummerical
+            time interval between current state and next state.
+
+        Returns
+        -------
+        None.
+
+        """
         self.acceleration = self.force / self.mass
         self.velocity += self.acceleration * delta_t
         self.position += self.velocity * delta_t
@@ -249,11 +310,30 @@ class Celestialobject():
             self.acceleration_history.append(self.get_acceleration())
             self.phi_history.append(self.get_phi())
 
-def set_state_after_collision(celestialobject_1, celestialobject_2, r_21, r_21_norm, r_21_in_v_12):
-    vector = 2*r_21_in_v_12/((celestialobject_1.mass + celestialobject_2.mass)*r_21_norm**2)*r_21
-    celestialobject_1.velocity -= celestialobject_2.mass*vector
-    celestialobject_2.velocity += celestialobject_1.mass*vector
 
+def set_forces_2celestialobjects(
+        celestialobject_1:Celestialobject, 
+        celestialobject_2:Celestialobject,
+        G, delta_t, alpha=2, 
+        collisionsOn=True, 
+        enterIsPossible=False):
+    r_21 = celestialobject_2.position - celestialobject_1.position
+    r_21_norm = norm(r_21)
+    R_12 = celestialobject_1.radius + celestialobject_2.radius
+    collison = False
+    # collisions
+    if collisionsOn and r_21_norm <= R_12:
+        collison = True
+        handle_collision(celestialobject_1, 
+                         celestialobject_2, 
+                         r_21, r_21_norm, R_12, 
+                         delta_t, enterIsPossible)
+        r_21 = celestialobject_2.position - celestialobject_1.position
+        r_21_norm = norm(r_21)
+    F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  r_21_norm**(alpha+1) * r_21
+    celestialobject_1.force = celestialobject_1.force + F_12
+    celestialobject_2.force = celestialobject_2.force - F_12
+    return collison
 
 def handle_collision(celestialobject_1, celestialobject_2, r_21, r_21_norm, R_12, delta_t, enterIsPossible):
     v_12 = celestialobject_1.velocity - celestialobject_2.velocity
@@ -276,31 +356,38 @@ def handle_collision(celestialobject_1, celestialobject_2, r_21, r_21_norm, R_12
         celestialobject_1.position += abs(delta_t - t_c) * celestialobject_1.velocity
         celestialobject_2.position += abs(delta_t - t_c) * celestialobject_2.velocity
 
+def set_state_after_collision(
+        celestialobject_1:Celestialobject, 
+        celestialobject_2:Celestialobject, 
+        r_21, 
+        r_21_norm, 
+        r_21_in_v_12):
+    """
+    
 
+    Parameters
+    ----------
+    celestialobject_1 : Celestialobject
+        DESCRIPTION.
+    celestialobject_2 : Celestialobject
+        DESCRIPTION.
+    r_21 : TYPE
+        DESCRIPTION.
+    r_21_norm : TYPE
+        DESCRIPTION.
+    r_21_in_v_12 : TYPE
+        DESCRIPTION.
 
-def set_forces_2celestialobjects(celestialobject_1, celestialobject_2, G, delta_t, alpha=2, collisionsOn=True, enterIsPossible=False):
-    r_21 = celestialobject_2.position - celestialobject_1.position
-    r_21_norm = norm(r_21)
-    R_12 = celestialobject_1.radius + celestialobject_2.radius
-    collison = False
-    # collisions
-    if collisionsOn and r_21_norm <= R_12:
-        collison = True
-        handle_collision(celestialobject_1, celestialobject_2, r_21, r_21_norm, R_12, delta_t, enterIsPossible)
-        r_21 = celestialobject_2.position - celestialobject_1.position
-        r_21_norm = norm(r_21)
-    F_12 = G * celestialobject_1.mass * celestialobject_2.mass /  r_21_norm**(alpha+1) * r_21
-    celestialobject_1.force = celestialobject_1.force + F_12
-    celestialobject_2.force = celestialobject_2.force - F_12
-    return collison
+    Returns
+    -------
+    None.
 
-def get_coords_com(celestialobjects):
-        return sum([planet.mass*planet.position for planet in celestialobjects]) / sum([planet.mass for planet in celestialobjects])
-
-    # def create_reandom_planet(range_mass=[1,20], range_size=[1,20], range_location=[100,800], range_velocity=[-5,5]):
-    #     co.celestialobject(9, 8, self.center, [-.05, 0])
-
-
+    """
+    vector = 2*r_21_in_v_12/(
+        (celestialobject_1.mass + celestialobject_2.mass) * r_21_norm**2
+        ) * r_21
+    celestialobject_1.velocity -= celestialobject_2.mass*vector
+    celestialobject_2.velocity += celestialobject_1.mass*vector
 
 def set_new_state(celestialobjects, G, alpha, delta_t, collisionsOn=True, enterIsPossible=False):
     for planet in celestialobjects:

@@ -67,37 +67,11 @@ class Animate_celestial_objects_pygame():
     def init_vars(self):
         # variables
         self.counter = 0
-        self.limits = 30000
-        # self.delay = tk.IntVar()
-        # self.delay.set(0)
-        # self.alpha = tk.DoubleVar()
-        # self.alpha.set(2)
-        # self.Delta_t = tk.DoubleVar()
-        # self.Delta_t.set(.1)
-        # self.G = tk.IntVar()
-        # self.G.set(10)
         self.zoom_step_factor = .05
         self.zoom_factor = 1
         self.zoom_position = [0,0]
-        # self.self.center = [500.,500.] # np.array([self.canvas.winfo_width(), self.canvas.winfo_height()])/2
-
-        # self.dropdown_list_center = ['COM','Absolute']
-        # self.dropdown_list_stats = ['Absolute']
-        # self.draw_graph = False
-        # self.center_CO = tk.StringVar()
-        # self.center_CO.set('COM')
-        # self.stats_CO = tk.StringVar()
-        # self.stats_CO.set('Absolute')
-        # self.arrow_factor_velocity = tk.IntVar()
-        # self.arrow_factor_velocity.set(10)
-        # self.arrow_factor_acceleration = tk.IntVar()
-        # self.arrow_factor_acceleration.set(180)
-        # self.time_list = []
-        # self.time = 0
         self.do_draw_tails = True
         self.do_draw_arrows = True
-        # self.running = False
-        # self.do_display_stats = False
         self.do_collide = True
         self.G = 15
         self.alpha = 2.1
@@ -107,31 +81,141 @@ class Animate_celestial_objects_pygame():
         self.correction_acceleration = np.zeros((2,))
 
     def initialise_planets(self):
-            self.planets = []
-            self.planets.append( co.celestialobject(1000, 'yellow',   self.center+np.array([152,160]), [-3., -2.], 'planet1') )
-            self.planets.append( co.celestialobject(1000, 'gray',  self.center+np.array([20,-10]), [10,30], 'planet24') ) #+np.array([-250,-160]), [.2,-.1]
-            self.planets.append( co.celestialobject(2000, 'pink',  self.center, [.0001,-.0002], 'planet242') )
-            self.planets.append( co.celestialobject(400, 'red',  self.center+np.array([432,160]), [0.,3], 'planet1') )
-            self.planets.append( co.celestialobject(3, 'orange',  self.center+np.array([0,160]), [-math.sqrt(self.G*self.planets[0].mass/150), 0.], 'planet3') )
-            self.planets.append( co.celestialobject(50, 'purple',   [0., 0.], [.1, .05], 'planet5') )
-            self.planets.append( co.celestialobject(268, 'magenta',   [1000, 1000], [-.1, -.1], 'planet6') )
-            self.planets.append( co.celestialobject(250, 'brown',   [500, 1000], [-5, 1], 'planetX') )
-            self.planets.append( co.celestialobject(10, 'gold',   [500+60, 1000], [-5.1,1 + math.sqrt(self.G*250/60)], 'planetXMoon'))
-            self.planets.append( co.celestialobject(1, 'blue',   self.center+np.array([0,-150]), [math.sqrt(self.G*self.planets[0].mass/150), 0.1], 'planet2') )
-            self.planets.append( co.celestialobject(5, 'green',  self.center+np.array([0,400]), [math.sqrt(self.G*self.planets[0].mass/400)+1, -1], 'planet3') )
-            # self.planets.append( co.celestialobject(20, 'coral',   self.center+np.array([-80,40]), [-1, 1.3], 'planet4') )
-            self.mass_of_all_planets = sum([planet.mass for planet in self.planets])
-            self.coordsCOM = co.get_coords_com(self.planets)
+        self.celestial_objects = []
+        self.celestial_objects.append( 
+        co.Celestialobject(
+            1000, 
+            'yellow', 
+            self.center+np.array([-150., 0.]), 
+            np.array([0, 0.]), 
+            'celestial_object1'
+            )
+
+        )
+        print(self.celestial_objects[0], self.G)
+        testtraj = co.Trajectory( 
+            self.celestial_objects[0], self.G
+            )
+        print(testtraj.G, testtraj.orbited_celestial_objects,
+              testtraj.angle, testtraj.direction, testtraj.eccentricity)
+
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            700, 
+            'magenta', 
+            self.center+np.array([150., 0.]),
+            co.Trajectory( 
+                self.celestial_objects[0], self.G
+                ),
+                'celestial_object2'
+                                  )
+                            )
+        #Ellipse
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            200, 
+            'blue', 
+            self.center+np.array([800, -200]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], self.G,
+                eccentricity=.7, angle=math.pi/11,direction = -1
+                ),
+                'celestial_object4'
+                                  )
+                            )
+        # planet+two moons
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            100, 
+            'red', 
+            self.center+np.array([0., 1500]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], self.G
+                ),
+                'planet'
+                                  )
+                            )
+
+
+
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            10, 
+            'gold', 
+            self.center+np.array([150, 1500]),
+            co.Trajectory( 
+                self.celestial_objects[3], self.G
+                ),
+                'moon'
+                                  )
+                            )
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            1, 
+            'green', 
+            self.center+np.array([150, 1500+10]),
+            co.Trajectory( 
+                self.celestial_objects[4], self.G
+                ),
+                'moon 2'
+                                  )
+                            )
+        #binary planets
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            100, 
+            'coral', 
+             
+            self.center+np.array([-850,250]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], self.G,
+                direction=-1
+                ),
+                'planet'
+                                  )
+                            )        
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            76, 
+            'orange', 
+             
+            self.center+np.array([-870,100]),
+            co.Trajectory( 
+                self.celestial_objects[6], self.G,
+                direction=-1
+                ),
+                'planet'
+                                  )
+                            )
+
+        self.celestial_objects.append( 
+            co.Celestialobject.fromtrajectory(
+            1, 
+            'orange', 
+            self.center+np.array([-8070,100]),
+            co.Trajectory( 
+                self.celestial_objects[0:2], self.G,
+                direction=-1, eccentricity=2
+                ),
+                'planet'
+                                  )
+                            )
+        self.mass_of_all_planets = sum([planet.mass for planet in self.planets])
+        self.coordsCOM = co.get_coords_com(self.planets)
             # self.init_COM()
 
     def draw_arrow(self, color, start, end):
         pygame.draw.aaline(self.surface, color, start, end, 1)
         rotation = math.degrees(math.atan2(start[1]-end[1], end[0]-start[0]))+90
-        pygame.draw.polygon(self.surface, color, (
-            (end[0]+2*math.sin(math.radians(rotation)), end[1]+2*math.cos(math.radians(rotation))),
-            (end[0]+2*math.sin(math.radians(rotation-120)), end[1]+2*math.cos(math.radians(rotation-120))),
-            (end[0]+2*math.sin(math.radians(rotation+120)), end[1]+2*math.cos(math.radians(rotation+120))))
-            )
+        pygame.draw.polygon(self.surface, color, 
+                            (
+            (end[0]+2*math.sin(math.radians(rotation)), 
+             end[1]+2*math.cos(math.radians(rotation))),
+            (end[0]+2*math.sin(math.radians(rotation-120)), 
+             end[1]+2*math.cos(math.radians(rotation-120))),
+            (end[0]+2*math.sin(math.radians(rotation+120)), 
+             end[1]+2*math.cos(math.radians(rotation+120))))
+                    )
 
     def draw_all(self):
         width, height = self.screen.get_size()
@@ -167,10 +251,6 @@ class Animate_celestial_objects_pygame():
         gfxdraw.filled_circle(self.surface, x, y,r,  color)
         gfxdraw.aacircle(self.surface, x, y ,r , color)
 
-    # def draw_COM(self):
-    #     self.
-
-
     def draw_tail(self, planet):
         planet.update_tail(1000)
         color_rgb = pygame.Color(planet.color)
@@ -181,13 +261,6 @@ class Animate_celestial_objects_pygame():
 
 
     def next_step(self):
-        # self.counter += 1
-        # delta_t = Delta_t.get()
-        # time += delta_t
-        # time_list.append(time)
-
-        # self.get_coords_com()
-
         co.set_new_state(self.planets, self.G, self.alpha,
                          self.delta_t, self.do_collide)
         for planet in self.planets:
@@ -196,22 +269,8 @@ class Animate_celestial_objects_pygame():
                 self.planets.remove(planet)
         self.coordsCOMNew = co.get_coords_com(self.planets)
         self.set_deltas()
-        # set_deltas()
-        # plot_speed.clear()
-        # plot_acceleration.clear()
-        # plot_phi.clear()
-        # length_list = len(time_list)
 
         self.coordsCOM = self.coordsCOMNew
-
-
-        # if do_display_stats:
-        #     display_stats()
-        # if collision:
-        #         # running = False
-        #         collision = False
-        # if running:
-        #     master.after(max(delay_slider.get(),1), next_step)
 
 
     def set_deltas(self):
