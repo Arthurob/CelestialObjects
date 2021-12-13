@@ -79,6 +79,7 @@ class Animate_celestial_objects_pygame():
         self.delay = 20
         self.correction_velocity = np.zeros((2,))
         self.correction_acceleration = np.zeros((2,))
+        self.limits = 10000
 
     def initialise_planets(self):
         self.celestial_objects = []
@@ -97,7 +98,8 @@ class Animate_celestial_objects_pygame():
             self.celestial_objects[0], self.G
             )
         print(testtraj.G, testtraj.orbited_celestial_objects,
-              testtraj.angle, testtraj.direction, testtraj.eccentricity)
+              testtraj.angle, testtraj.direction, 
+              testtraj.eccentricity)
 
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
@@ -200,8 +202,8 @@ class Animate_celestial_objects_pygame():
                 'planet'
                                   )
                             )
-        self.mass_of_all_planets = sum([planet.mass for planet in self.planets])
-        self.coordsCOM = co.get_coords_com(self.planets)
+        self.mass_of_all_planets = sum([planet.mass for planet in self.celestial_objects])
+        self.coordsCOM = co.get_center_of_mass_coordinates(self.celestial_objects)
             # self.init_COM()
 
     def draw_arrow(self, color, start, end):
@@ -221,11 +223,11 @@ class Animate_celestial_objects_pygame():
         width, height = self.screen.get_size()
         self.surface = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
         self.surface.fill(pygame.Color('black'))
-        for planet in self.planets:
+        for planet in self.celestial_objects:
                     if self.do_draw_tails:
                         self.draw_tail(planet)
 
-        for planet in self.planets:
+        for planet in self.celestial_objects:
             corrected_position = self.get_zoomed_coordinates(planet.position - self.Delta)
             self.draw_COs(planet, corrected_position)
 
@@ -261,13 +263,13 @@ class Animate_celestial_objects_pygame():
 
 
     def next_step(self):
-        co.set_new_state(self.planets, self.G, self.alpha,
+        co.set_new_state(self.celestial_objects, self.G, self.alpha,
                          self.delta_t, self.do_collide)
-        for planet in self.planets:
+        for planet in self.celestial_objects:
             if co.norm(planet.position) > self.limits:
                 print("planet: "  +planet.name + " will be removed")
-                self.planets.remove(planet)
-        self.coordsCOMNew = co.get_coords_com(self.planets)
+                self.celestial_objects.remove(planet)
+        self.coordsCOMNew = co.get_center_of_mass_coordinates(self.celestial_objects)
         self.set_deltas()
 
         self.coordsCOM = self.coordsCOMNew
