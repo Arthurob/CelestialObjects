@@ -96,6 +96,7 @@ class Animate_celestial_objects():
         """
 
         G = self.G.get() # Get current value of G for seting up circulair trajectorys
+        #0
         self.celestial_objects.append( 
             co.Celestialobject(
                 1000, 
@@ -107,7 +108,7 @@ class Animate_celestial_objects():
                 )
                                       
             )
-        
+        #1
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             700, 
@@ -121,6 +122,7 @@ class Animate_celestial_objects():
                                   )
                             )
         #Ellipse
+        #2
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             200, 
@@ -135,6 +137,7 @@ class Animate_celestial_objects():
                                   )
                             )
         # planet+two moons
+        #3
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             100, 
@@ -142,39 +145,42 @@ class Animate_celestial_objects():
             self.canvas, 
             self.center+np.array([0., 1500]),
             co.Trajectory( 
-                self.celestial_objects[0:2], G
+                self.celestial_objects[0:2], G,
+                eccentricity=.5, angle=-math.pi/4
                 ),
                 'planet'
                                   )
                             )
         
 
-        
+        #4
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             10, 
             'gold', 
             self.canvas, 
-            self.center+np.array([150, 1500]),
+            self.center+np.array([179, 1500]),
             co.Trajectory( 
                 self.celestial_objects[3], G
                 ),
                 'moon'
                                   )
                             )
+        #5
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             1, 
             'green', 
             self.canvas, 
-            self.center+np.array([150, 1500+10]),
+            self.center+np.array([179-20, 1500+10]),
             co.Trajectory( 
-                self.celestial_objects[4], G
+                self.celestial_objects[4], G, direction=-1
                 ),
                 'moon 2'
                                   )
                             )
         #binary planets
+        #6
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             100, 
@@ -187,7 +193,8 @@ class Animate_celestial_objects():
                 ),
                 'planet'
                                   )
-                            )        
+                            )     
+        #7
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             76, 
@@ -202,6 +209,7 @@ class Animate_celestial_objects():
                                   )
                             )
         
+        #8
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
             1, 

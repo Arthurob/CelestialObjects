@@ -290,7 +290,7 @@ class Celestialobject():
             velocity =  self.get_velocity_circulair_trajectory(trajectory)
         
         else:
-            velocity = self.get_velocity_circulair_trajectory(trajectory)
+            velocity = self.get_velocity_trajectory(trajectory)
         return velocity
 
     def get_velocity_circulair_trajectory(self, trajectory:Trajectory):
@@ -322,7 +322,7 @@ class Celestialobject():
             trajectory.G * m_cm  / norm(r) 
             )
         v_trajectory_cartesian = v_trajectory_radial  * trajectory.direction * np.array([-math.sin(theta), math.cos(theta)])
-        v_total = v_cm + v_trajectory_cartesian
+        v_total = v_trajectory_cartesian  + v_cm
         return v_total
     
     def get_velocity_trajectory(self, trajectory:Trajectory):
@@ -348,20 +348,18 @@ class Celestialobject():
         r_cm, v_cm, m_cm, r = self.get_parameters_trajectory(trajectory)
         theta = trajectory.angle
         e = trajectory.eccentricity
-        sign = trajectory.direction
-        alpha = 1 + e * sign * math.cos(theta)
-        a = r * alpha / (1-e*e)
-        beta = a*(1-e*e)
-        v_factor = math.sqrt(2 * trajectory.G * m_cm / beta)
+        alpha = 1 + e * math.cos(theta)
+        beta = alpha * norm(r)
+        v_factor = trajectory.direction* math.sqrt(
+            2 * trajectory.G * m_cm / beta
+            )
         v_r = v_factor  * e * math.sin(theta)
         v_theta = v_factor * alpha
-        coords_2 = self.center+np.array([r,0])
-        r_vec = self.center - coords_2
-        phi = math.atan2(r_vec[1], r_vec[0])
+        phi = math.atan2(r[1], r[0])
         e_r = np.array([np.cos(phi), np.sin(phi)])
         e_phi = np.array([-np.sin(phi), np.cos(phi)])
         v_vec = v_r * e_r + v_theta * e_phi
-        velocity = v_cm + v_vec
+        velocity = v_vec + v_cm
         return velocity
     
     def get_parameters_trajectory(self, trajectory:Trajectory):
