@@ -221,7 +221,6 @@ class Celestialobject():
        e = trajectory.eccentricity
        alpha = 1 + e * math.cos(theta)
        beta = alpha * norm(r)
-       print(alpha, beta)
        v_factor = trajectory.direction* math.sqrt(
            2 * trajectory.G * m_cm / beta
            )
