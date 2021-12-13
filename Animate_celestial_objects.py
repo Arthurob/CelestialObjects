@@ -75,7 +75,7 @@ class Animate_celestial_objects_pygame():
         self.do_collide = True
         self.G = 15
         self.alpha = 2.1
-        self.delta_t = .1
+        self.delta_t = .5
         self.delay = 20
         self.correction_velocity = np.zeros((2,))
         self.correction_acceleration = np.zeros((2,))
@@ -93,13 +93,6 @@ class Animate_celestial_objects_pygame():
             )
 
         )
-        print(self.celestial_objects[0], self.G)
-        testtraj = co.Trajectory( 
-            self.celestial_objects[0], self.G
-            )
-        print(testtraj.G, testtraj.orbited_celestial_objects,
-              testtraj.angle, testtraj.direction, 
-              testtraj.eccentricity)
 
         self.celestial_objects.append( 
             co.Celestialobject.fromtrajectory(
@@ -132,7 +125,8 @@ class Animate_celestial_objects_pygame():
             'red', 
             self.center+np.array([0., 1500]),
             co.Trajectory( 
-                self.celestial_objects[0:2], self.G
+                self.celestial_objects[0:2], self.G,
+                eccentricity=.3, angle=-math.pi/5
                 ),
                 'planet'
                                   )
