@@ -25,9 +25,8 @@ class Trajectory:
         the eccentricity, e,  of the orbit: 0: circular, 0<e<1: elliptical
         e>1: hyperbolic
     angle: numerical
-        angle between the 
-            
-    
+        angle between the orbeting celestial objct and the semi-major axis of 
+        the trajectory
      
     """
     def __init__(self, orbited_celestial_objects, G,
