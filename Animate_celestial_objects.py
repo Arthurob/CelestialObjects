@@ -3,20 +3,115 @@
 Created on Mon Sep 20 23:08:18 2021
 
 @author: Arthur
+Two abbriviations are often used to reduce lengthy variables:
+    cm for center of mass
+    and co for Celestial Object
 """
-import pygame
 import sys
-import celestialobject as co
+import traceback
 import numpy as np
 import math
+import pygame
 import pygame_widgets
 from pygame import gfxdraw
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox
-import traceback
+import celestialobject as co
 
+class Zoom():
+    """
+    The zoom class handles all the parameters used for zooming.
 
-class Animate_celestialobjects_pygame():
+    Attributes
+  ----------       
+  step_factor : nummerical
+      used to change the zoom factor in steps.
+  factor : nummerical
+      the zoom factor.
+  factor_prev : nummerical
+      the previous zoom factor
+  position : nummerical
+      The on screen position of where to zoom on in/out.
+  position_prev : nummerical
+      the previous on screen position.
+  position_co_frame : nummerical
+      the zoom position in the celestial object frame.
+  position_prev_co_frame : nummerical
+      the previous zoom position in the celestial object frame.
+    
+    """
+    def __init__(self, step_factor=.05):
+        """
+        initizalize the zoom parameters, which start in the unzoomed state
+
+        Parameters
+        ----------
+        step_factor : nummerical, optional
+            used to change the zoom factor in steps . The default is .05.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.step_factor = step_factor
+        self.factor = 1
+        self.factor_prev = 1
+        self.position = np.zeros((2,))
+        self.position_prev = np.zeros((2,))
+        self.position_co_frame = np.zeros((2,))
+        self.position_prev_co_frame = np.zeros((2,))
+        
+    def update_parameters(self, position, direction):
+        """
+        Updates the zoom parameters after a zoom event has taken place
+
+        Parameters
+        ----------
+        position : nummerical 
+        The on screen position of where to zoom on in/out..
+        direction : nummerical
+            +1 for zooming in, -1 for zooming out.
+
+        Returns
+        -------
+        None.
+
+        """
+        self.position_prev = self.position
+        self.factor_prev = self.factor
+        self.position_prev_co_frame = self.position_co_frame
+        self.position = position
+        self.factor *= (1 + direction * self.step_factor)  
+        self.position_co_frame = (
+              self.position - self.position_prev
+            )/self.factor_prev + self.position_prev_co_frame
+        
+    def get_zoomed_coordinate(self, coordinate):
+        """
+        yields the zoomed in coordinates of any coordinate in the Celestial
+        Object reference space
+
+        Parameters
+        ----------
+        coordinate : numpy array
+             coordinate in the Celestial
+             Object reference space .
+
+        Returns
+        -------
+        zoomed_coordinate : numpy array
+        the zoomed in coordinates of any coordinate in the Celestial
+        Object reference space.
+
+        """
+        zoomed_coordinate = (
+            self.factor * (coordinate - self.position_co_frame) 
+            + self.position
+            )
+        return zoomed_coordinate
+
+class AnimateCelestialobjects():
 
     def __init__(self):
         SCREEN_SIZE = WIDTH, HEIGHT = (1000, 1000)
@@ -30,28 +125,24 @@ class Animate_celestialobjects_pygame():
 
         self.center = np.array([WIDTH,HEIGHT])/2
         # self.init_window()
-        self.init_vars()
+        self.init_parameters()
         # self.init_UI()
         self.initialise_planets()
         self.celestial_initizalized = True
         self.mainloop()
         
-    def init_vars(self):
+    def init_parameters(self):
         # variables
         self.counter = 0
-        self.zoom_step_factor = .05
-        self.zoom_factor = 1
-        self.zoom_factor_old = 1
-        self.zoom_position = np.zeros((2,))
-        self.zoom_position_old = np.zeros((2,))
-        self.zoom_position_cm_frame = np.zeros((2,))
-        self.zoom_position_old_cm_frame = np.zeros((2,))
+        #zoom
+        self.zoom = Zoom()
+        print(self.zoom)
         self.do_draw_tails = True
         self.do_draw_arrows = True
         self.do_collide = True
         self.G = 15
         self.alpha = 2
-        self.delta_t = 1
+        self.delta_t = .5
         self.delay = 0
         self.correction_velocity = np.zeros((2,))
         self.correction_acceleration = np.zeros((2,))
@@ -125,7 +216,7 @@ class Animate_celestialobjects_pygame():
             co.Celestialobject.fromtrajectory(
             1, 
             'green', 
-            self.center+np.array([150, 1500+10]),
+            self.center+np.array([150, 1500+20]),
             co.Trajectory( 
                 self.celestialobjects[4], self.G
                 ),
@@ -138,7 +229,7 @@ class Animate_celestialobjects_pygame():
             100, 
             'coral', 
              
-            self.center+np.array([-850,250]),
+            self.center+np.array([-1000,250]),
             co.Trajectory( 
                 self.celestialobjects[0:2], self.G,
                 direction=-1
@@ -151,7 +242,7 @@ class Animate_celestialobjects_pygame():
             76, 
             'orange', 
              
-            self.center+np.array([-870,100]),
+            self.center+np.array([-1000,100]),
             co.Trajectory( 
                 self.celestialobjects[6], self.G,
                 direction=-1
@@ -172,7 +263,6 @@ class Animate_celestialobjects_pygame():
                 'planet'
                                   )
                             )
-        self.mass_of_all_planets = sum([planet.mass for planet in self.celestialobjects])
         self.coordsCOM = co.get_center_of_mass_coordinates(self.celestialobjects)
         co.substract_centerofmass_velocity(self.celestialobjects)
             # self.init_COM()
@@ -192,8 +282,8 @@ class Animate_celestialobjects_pygame():
                     
     def handle_events(self):
         if self.event.type == pygame.KEYUP:
-                        if self.event.key == pygame.K_SPACE:
-                            self.pause = not self.pause
+            if self.event.key == pygame.K_SPACE:
+                self.pause = not self.pause
         if self.event.type == pygame.MOUSEBUTTONUP:
             pos = pygame.mouse.get_pos()
             print("you clicked at:", pos, self.counter)
@@ -201,30 +291,24 @@ class Animate_celestialobjects_pygame():
 
     def handle_zoom(self):
         if self.event.type == pygame.MOUSEWHEEL:
-            if ((self.event.y>0 and self.zoom_factor <= 100) or 
-                (self.event.y<0 and .01 <= self.zoom_factor)):
-                self.zoom_position_old = self.zoom_position
-                self.zoom_factor_old = self.zoom_factor
-                self.zoom_position_old_cm_frame = self.zoom_position_cm_frame
-                self.zoom_factor *= (1+self.event.y*self.zoom_step_factor)  
-                self.zoom_position = np.array(pygame.mouse.get_pos())
-                self.zoom_position_cm_frame = (
-                      self.zoom_position - self.zoom_position_old
-                    )/self.zoom_factor_old + self.zoom_position_old_cm_frame
+            if ((self.event.y>0 and self.zoom.factor <= 100) or 
+                (self.event.y<0 and .01 <= self.zoom.factor)):
+                self.zoom.update_parameters(
+                    np.array(pygame.mouse.get_pos()),
+                    self.event.y)
 
     def draw_all(self):
-        print("draw", self.counter)
+        # print("draw", self.counter)
         self.center = np.array(self.screen.get_size())/2
         self.surface = pygame.Surface(self.screen.get_size(), pygame.SRCALPHA)
         self.surface.fill(pygame.Color('black'))
         for planet in self.celestialobjects:
-                    if self.do_draw_tails:
-                        self.draw_tail(planet)
+            if self.do_draw_tails:
+                self.draw_tail(planet)
 
         for planet in self.celestialobjects:
-            corrected_position = self.get_zoomed_coordinate(planet.position)
+            corrected_position = self.zoom.get_zoomed_coordinate(planet.position)
             self.draw_celestialobjects(planet, corrected_position)
-
             if self.do_draw_arrows:
                 self.draw_arrows(planet, corrected_position)
         self.screen.blit(self.surface, (0, 0))
@@ -256,7 +340,7 @@ class Animate_celestialobjects_pygame():
     def draw_celestialobjects(self, planet, corrected_position):
         color = pygame.Color(planet.color)
         x, y = int(corrected_position[0]), int(corrected_position[1])
-        r = max(int(self.zoom_factor*planet.radius), 1)
+        r = max(int(self.zoom.factor*planet.radius), 1)
         gfxdraw.filled_circle(self.surface, x, y, r,  color)
         gfxdraw.aacircle(self.surface, x, y ,r , color)
 
@@ -266,15 +350,7 @@ class Animate_celestialobjects_pygame():
         length_tail = len(planet.tail)
         for i, pos in enumerate(planet.tail):
             color_rgb.a = int(255 * i / length_tail)
-            self.surface.fill(color_rgb, (self.get_zoomed_coordinate(pos), (1, 1)))
-
-
-    def get_zoomed_coordinate(self, coordinate):
-        zoomed_coordinate = (
-            self.zoom_factor * (coordinate - self.zoom_position_cm_frame) 
-            + self.zoom_position
-            )
-        return zoomed_coordinate
+            self.surface.fill(color_rgb, (self.zoom.get_zoomed_coordinate(pos), (1, 1)))
 
     def next_step(self):
         self.counter += 1
@@ -286,7 +362,7 @@ class Animate_celestialobjects_pygame():
                 self.celestialobjects.remove(planet)
 
 try:
-    animation = Animate_celestialobjects_pygame()
+    animation = AnimateCelestialobjects()
 except:
     print("Unexpected error:", sys.exc_info())
     print(traceback.format_exc())
