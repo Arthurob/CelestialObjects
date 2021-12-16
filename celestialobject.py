@@ -309,6 +309,10 @@ class Celestialobject():
             self.acceleration_history.append(self.get_acceleration())
             self.phi_history.append(self.get_phi())
 
+def substract_centerofmass_velocity(celestialobjects):
+    v_cm = get_center_of_mass_velocity(celestialobjects)
+    for celestialobject in celestialobjects:
+        celestialobject.velocity -= v_cm
 
 def set_forces_2celestialobjects(
         celestialobject_1:Celestialobject, 
@@ -417,7 +421,7 @@ def norm(v):
 
 def get_center_of_mass_coordinates(celestialobjects):
     return (
-        sum([planet.mass*planet.position for planet in celestialobjects]) 
+        sum([planet.mass * planet.position for planet in celestialobjects]) 
         / sum([planet.mass for planet in celestialobjects])
         )
 
