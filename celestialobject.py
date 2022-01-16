@@ -113,7 +113,7 @@ class Celestialobject():
             self.name = 'planet'+result_str
         else:
             self.name = name
-        self.keep_history = True
+        self.keep_history = False
         self.speed_history = []
         self.acceleration_history = []
         self.phi_history = []
@@ -448,10 +448,25 @@ def create_celestial_objects_in_geometric_shape(center,
             mass,
             color,
             position,
-            velocity,
-            'celestial_object1'
+            velocity
             )
         celestial_objects.append(celestial_object)
     return celestial_objects
-        
-    
+
+def create_celestial_objects_in_grid(left_upper_corner,
+                                     unit_length,
+                                     n_rows,
+                                     n_columns,
+                                     mass,
+                                     color):
+    celestial_objects = []
+    for row in range(n_rows):
+        for column in range(n_columns):
+            position = left_upper_corner + unit_length * np.array([row, column])
+            celestial_object = Celestialobject(
+                mass=mass,
+                color=color,
+                position=position
+                )
+            celestial_objects.append(celestial_object)
+    return celestial_objects

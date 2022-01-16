@@ -162,12 +162,12 @@ class AnimateCelestialobjects():
         self.zoom = Zoom()
         self.origin = np.zeros((2,))
         self.move = np.zeros((2,))
-        self.do_draw_tails = True
+        self.do_draw_tails = False
         self.do_draw_arrows = True
         self.do_collide = True
         self.G = 15
         self.alpha = 2
-        self.delta_t = 1
+        self.delta_t = .5
         self.delay = 0
         self.correction_velocity = np.zeros((2,))
         self.correction_acceleration = np.zeros((2,))
@@ -303,8 +303,16 @@ class AnimateCelestialobjects():
             n_sides=10,
             mass=50,
             color='white')
-        self.celestialobjects = self.celestialobjects + \
-            shaped_planets_1 + shaped_planets_2
+        shaped_planets_3 = co.create_celestial_objects_in_grid(
+            left_upper_corner=np.array([0,0]),
+            unit_length=100,
+            n_rows=15,
+            n_columns=15,
+            mass=10,
+            color='red')
+        self.celestialobjects = shaped_planets_3 
+        # self.celestialobjects + \
+            # shaped_planets_1 + shaped_planets_2 + 
         self.coordsCOM = co.get_center_of_mass_coordinates(
             self.celestialobjects)
         co.substract_centerofmass_velocity(self.celestialobjects)
