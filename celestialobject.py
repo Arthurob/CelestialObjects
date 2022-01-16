@@ -8,26 +8,27 @@ import numpy as np
 import random
 import string
 import math
+# TODO: Add preset init for objects at vertices of geometric shapes
 
 class Trajectory:
     """
-      A class that functionality that can make the celestial object have a certain
-            initial velocity wrt a Keplerian trajectory around one or more 
-            existing celestial objects.
-      Attributes
+    A class that functionality that can make the celestial object have a 
+    certain initial velocity wrt a Keplerian trajectory around one or more
+    existing celestial objects.
+    
+    Attributes
     ----------                      
-    orbited_celestial_objects: List of the Celestial objects
-    which the new Celestial orbit will initially orbit. 
-    G: numerical value gravitational constant,
-    direction: numerical 
-        direction(1 for clockwise, -1 for counterclockwise)]
-    eccentricity: numerical
-        the eccentricity, e,  of the orbit: 0: circular, 0<e<1: elliptical
-        e>1: hyperbolic
-    angle: numerical
-        angle between the orbeting celestial objct and the semi-major axis of 
-        the trajectory
-     
+        orbited_celestial_objects: List of the Celestial objects
+        which the new Celestial orbit will initially orbit. 
+        G: numerical value gravitational constant,
+        direction: numerical 
+            direction(1 for clockwise, -1 for counterclockwise)]
+        eccentricity: numerical
+            the eccentricity, e,  of the orbit: 0: circular, 0<e<1: elliptical
+            e>1: hyperbolic
+        angle: numerical
+            angle between the orbeting celestial objct and the semi-major axis of 
+            the trajectory
     """
     def __init__(self, orbited_celestial_objects, G,
                  direction=1, eccentricity=0, angle=0):
@@ -46,29 +47,29 @@ class Celestialobject():
     A class that represents a Celestial object or body
     Attributes
     ----------
-    mass : numerical
-        mass of the Celestial object
-    color : str
-        color for the Celestial object
-    position: numpy array
-        The  position vector on the canvas
-    velocity: numpy array
-        The velocity vector
-    name: str
-        name of the Celestial object
-    radius: numerical
-        the size on canvas in pixels of the Celestial object
-    force: numpy array
-        The total force acting on the Celestial object
-    acceleration: numpy array
-        The  acceleration vector
-    speed_history: array
-        keeps history of the velocity
-    acceleration_history: array
-        keeps history of the accelaration
-    phi_history
-    keep_history = boolean
-        keep history of the speed, acceleration and phi?
+        mass : numerical
+            mass of the Celestial object
+        color : str
+            color for the Celestial object
+        position: numpy array
+            The  position vector on the canvas
+        velocity: numpy array
+            The velocity vector
+        name: str
+            name of the Celestial object
+        radius: numerical
+            the size on canvas in pixels of the Celestial object
+        force: numpy array
+            The total force acting on the Celestial object
+        acceleration: numpy array
+            The  acceleration vector
+        speed_history: array
+            keeps history of the velocity
+        acceleration_history: array
+            keeps history of the accelaration
+        phi_history
+        keep_history = boolean
+            keep history of the speed, acceleration and phi
     """
 
     def __init__(self, mass:float, color:str,
@@ -116,7 +117,7 @@ class Celestialobject():
         self.speed_history = []
         self.acceleration_history = []
         self.phi_history = []
-        self.tail=[]
+        self.tail = []
 
     @classmethod
     def fromtrajectory(cls, mass:float, color:str,
@@ -365,7 +366,6 @@ def set_state_after_collision(
         r_21_norm, 
         r_21_in_v_12):
     """
-    
 
     Parameters
     ----------
@@ -429,3 +429,29 @@ def get_center_of_mass_velocity(celestialobjects):
         sum([planet.mass*planet.velocity for planet in celestialobjects]) 
         / sum([planet.mass for planet in celestialobjects])
             )
+
+def create_celestial_objects_in_geometric_shape(center,
+                                                length,
+                                                velocity_perpundicular,
+                                                n_sides,
+                                                mass,
+                                                color):
+    celestial_objects = []
+    delta_angle = 2 * math.pi / n_sides
+    for i in range(n_sides):
+        angle = i * delta_angle
+        position = center + length * np.array(
+            [math.cos(angle), math.sin(angle)])
+        velocity = velocity_perpundicular * np.array(
+            [-math.sin(angle), math.cos(angle)]) 
+        celestial_object = Celestialobject(
+            mass,
+            color,
+            position,
+            velocity,
+            'celestial_object1'
+            )
+        celestial_objects.append(celestial_object)
+    return celestial_objects
+        
+    
