@@ -90,8 +90,8 @@ class Zoom():
         self.position = position
         self.factor *= (1 + direction * self.step_factor)
         self.position_co_frame = (
-              self.position - self.position_prev
-            )/self.factor_prev + self.position_prev_co_frame
+            self.position - self.position_prev
+        )/self.factor_prev + self.position_prev_co_frame
 
     def get_zoomed_coordinate(self, coordinate):
         """
@@ -114,8 +114,9 @@ class Zoom():
         zoomed_coordinate = (
             self.factor * (coordinate - self.position_co_frame)
             + self.position
-            )
+        )
         return zoomed_coordinate
+
 
 class AnimateCelestialobjects():
     """
@@ -135,6 +136,7 @@ class AnimateCelestialobjects():
         the trajectory
 
     """
+
     def __init__(self):
         SCREEN_SIZE = WIDTH, HEIGHT = (1000, 1000)
 
@@ -145,7 +147,7 @@ class AnimateCelestialobjects():
         self.fps = pygame.time.Clock()
         self.pause = False
 
-        self.center = np.array([WIDTH,HEIGHT])/2
+        self.center = np.array([WIDTH, HEIGHT])/2
         # self.init_window()
         self.init_parameters()
         # self.init_UI()
@@ -156,7 +158,7 @@ class AnimateCelestialobjects():
     def init_parameters(self):
         # variables
         self.counter = 0
-        #zoom
+        # zoom
         self.zoom = Zoom()
         self.origin = np.zeros((2,))
         self.move = np.zeros((2,))
@@ -301,10 +303,12 @@ class AnimateCelestialobjects():
             n_sides=10,
             mass=50,
             color='white')
-        self.celestialobjects = self.celestialobjects + shaped_planets_1 + shaped_planets_2
-        self.coordsCOM = co.get_center_of_mass_coordinates(self.celestialobjects)
+        self.celestialobjects = self.celestialobjects + \
+            shaped_planets_1 + shaped_planets_2
+        self.coordsCOM = co.get_center_of_mass_coordinates(
+            self.celestialobjects)
         co.substract_centerofmass_velocity(self.celestialobjects)
-            # self.init_COM()
+        # self.init_COM()
 
     def mainloop(self):
         while True:
@@ -312,49 +316,48 @@ class AnimateCelestialobjects():
                 self.next_step()
                 self.draw_all()
                 pygame.time.delay(self.delay)
-            self.events = pygame.event.get()
-            for self.event in self.events:
-                if self.event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
                 self.handle_events()
 
     def handle_events(self):
-        if self.event.type == pygame.KEYDOWN:
-            if self.event.key == pygame.K_RIGHT:
-                self.move[0] = -1
-            if self.event.key == pygame.K_LEFT:
-                self.move[0] = 1
-            if self.event.key == pygame.K_UP:
-                self.move[1] = 1
-            if self.event.key == pygame.K_DOWN:
-                self.move[1] = -1
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    self.move[0] = -1
+                if event.key == pygame.K_LEFT:
+                    self.move[0] = 1
+                if event.key == pygame.K_UP:
+                    self.move[1] = 1
+                if event.key == pygame.K_DOWN:
+                    self.move[1] = -1
 
-        if self.event.type == pygame.KEYUP:
-            if self.event.key == pygame.K_SPACE:
-                self.pause = not self.pause
-            if self.event.key == pygame.K_RIGHT:
-                self.move[0] = 0
-            if self.event.key == pygame.K_LEFT:
-                self.move[0] = 0
-            if self.event.key == pygame.K_UP:
-                self.move[1] = 0
-            if self.event.key == pygame.K_DOWN:
-                self.move[1] = 0
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    self.pause = not self.pause
+                if event.key == pygame.K_RIGHT:
+                    self.move[0] = 0
+                if event.key == pygame.K_LEFT:
+                    self.move[0] = 0
+                if event.key == pygame.K_UP:
+                    self.move[1] = 0
+                if event.key == pygame.K_DOWN:
+                    self.move[1] = 0
 
-        if self.event.type == pygame.MOUSEBUTTONUP:
-            pos = pygame.mouse.get_pos()
-            print("you clicked at:", pos, self.counter)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_presses = pygame.mouse.get_pressed()
+                if mouse_presses[0]:
+                    pos = pygame.mouse.get_pos()
+                    print("you clicked at:", pos, self.counter)
 
-        self.handle_zoom()
-
-    def handle_zoom(self):
-        if self.event.type == pygame.MOUSEWHEEL:
-            if ((self.event.y>0 and self.zoom.factor <= 100) or
-                (self.event.y<0 and .01 <= self.zoom.factor)):
-                self.zoom.update_parameters(
-                    np.array(pygame.mouse.get_pos()),
-                    self.event.y)
+            elif event.type == pygame.MOUSEWHEEL:
+                if ((event.y > 0 and self.zoom.factor <= 100) or
+                        (event.y < 0 and .01 <= self.zoom.factor)):
+                    self.zoom.update_parameters(
+                        np.array(pygame.mouse.get_pos()),
+                        event.y)
 
     def draw_all(self):
         width, height = self.screen.get_size()
@@ -371,7 +374,8 @@ class AnimateCelestialobjects():
         # output.setText(slider.getValue())
         # pygame_widgets.update(self.events)
         # self.controlsmenu.menu.mainloop(self.controls_surface)
-        self.screen.blit(self.controls_surface, (size[0]-self.size_controls, 0))
+        self.screen.blit(self.controls_surface,
+                         (size[0]-self.size_controls, 0))
 
     def update_origin(self):
         self.origin += 15 * self.move
@@ -390,7 +394,7 @@ class AnimateCelestialobjects():
             corrected_position = (
                 self.zoom.get_zoomed_coordinate(planet.position)
                 + self.origin
-                )
+            )
             self.draw_celestialobjects(planet, corrected_position)
             if self.do_draw_arrows:
                 self.draw_arrows(planet, corrected_position)
@@ -399,16 +403,17 @@ class AnimateCelestialobjects():
 
     def draw_arrow(self, color, start, end):
         pygame.draw.aaline(self.animation_surface, color, start, end, 1)
-        rotation = math.degrees(math.atan2(start[1]-end[1], end[0]-start[0]))+90
+        rotation = math.degrees(math.atan2(
+            start[1]-end[1], end[0]-start[0]))+90
         pygame.draw.polygon(self.animation_surface, color,
                             (
-            (end[0]+2*math.sin(math.radians(rotation)),
-             end[1]+2*math.cos(math.radians(rotation))),
-            (end[0]+2*math.sin(math.radians(rotation-120)),
-             end[1]+2*math.cos(math.radians(rotation-120))),
-            (end[0]+2*math.sin(math.radians(rotation+120)),
-             end[1]+2*math.cos(math.radians(rotation+120))))
-                    )
+                                (end[0]+2*math.sin(math.radians(rotation)),
+                                 end[1]+2*math.cos(math.radians(rotation))),
+                                (end[0]+2*math.sin(math.radians(rotation-120)),
+                                 end[1]+2*math.cos(math.radians(rotation-120))),
+                                (end[0]+2*math.sin(math.radians(rotation+120)),
+                                 end[1]+2*math.cos(math.radians(rotation+120))))
+                            )
 
     def draw_arrows(self, planet, corrected_position):
         self.draw_arrow(
@@ -416,16 +421,16 @@ class AnimateCelestialobjects():
             corrected_position,
             corrected_position +
             (planet.force/planet.mass - self.correction_acceleration)*100
-            )
-        self.draw_arrow(pygame.Color(planet.color), corrected_position
-                       , corrected_position+(planet.velocity - self.correction_velocity )*10)
+        )
+        self.draw_arrow(pygame.Color(planet.color), corrected_position,
+                        corrected_position+(planet.velocity - self.correction_velocity)*10)
 
     def draw_celestialobjects(self, planet, corrected_position):
         color = pygame.Color(planet.color)
         x, y = int(corrected_position[0]), int(corrected_position[1])
         r = max(int(self.zoom.factor*planet.radius), 1)
         gfxdraw.filled_circle(self.animation_surface, x, y, r,  color)
-        gfxdraw.aacircle(self.animation_surface, x, y ,r , color)
+        gfxdraw.aacircle(self.animation_surface, x, y, r, color)
 
     def draw_tail(self, planet):
         planet.update_tail(10000)
@@ -437,7 +442,7 @@ class AnimateCelestialobjects():
                 self.zoom.get_zoomed_coordinate(pos)
                 + self.origin,
                 (1, 1))
-                )
+            )
 
     def next_step(self):
         self.counter += 1
@@ -446,8 +451,9 @@ class AnimateCelestialobjects():
         self.update_origin()
         for planet in self.celestialobjects:
             if co.norm(planet.position) > self.limits:
-                print("planet: "  + planet.name + " will be removed")
+                print("planet: " + planet.name + " will be removed")
                 self.celestialobjects.remove(planet)
+
 
 try:
     animation = AnimateCelestialobjects()
