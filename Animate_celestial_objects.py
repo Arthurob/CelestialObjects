@@ -20,8 +20,8 @@ import pygame
 # import pygame_menu
 # import pygame_widgets
 from pygame import gfxdraw
-# from pygame_widgets.slider import Slider
-# from pygame_widgets.textbox import TextBox
+from pygame_widgets.slider import Slider
+from pygame_widgets.textbox import TextBox
 import celestialobject as co
 
 
@@ -320,6 +320,7 @@ class AnimateCelestialobjects():
 
     def handle_events(self):
         events = pygame.event.get()
+        pygame_widgets.update(events)
         for event in events:
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -369,10 +370,11 @@ class AnimateCelestialobjects():
     def draw_controls(self, size):
         self.controls_surface = pygame.Surface((self.size_controls, size[1]))
         self.controls_surface.fill(pygame.Color('white'))
-        # slider = Slider(self.controls_surface, 100, 100, 800, 40, min=0, max=99, step=1)
-        # output = TextBox(self.controls_surface, 475, 200, 50, 50, fontSize=30)
-        # output.setText(slider.getValue())
-        # pygame_widgets.update(self.events)
+        slider = Slider(
+            self.controls_surface, 100, 100, 80, 40, min=0, max=99, step=1
+            )
+        output = TextBox(self.controls_surface, 475, 200, 50, 50, fontSize=30)
+        output.setText(slider.getValue())
         # self.controlsmenu.menu.mainloop(self.controls_surface)
         self.screen.blit(self.controls_surface,
                          (size[0]-self.size_controls, 0))
