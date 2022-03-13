@@ -1,14 +1,17 @@
 ## Description
 The Celestial objects project is an interactive 2D simulator which lets you controll the
-physics of a  multi celestial bodies system (planets, stars, etc) through Newtonian physics,
-such as the gravitanial constant G, the power by which the distance is raised (normally 2).
-It also draws factors and let's you control the direction of time, set  favourite celestial object
-at rest showing relative motion.
+physics of a  multi celestial bodies system (planets, stars, etc) through Newtonian physics 
+(using the Runge-Kutta method), such as the gravitanial constant G, the power by which the distance is raised (normally 2).
+It also draws vectors and lets you control the direction of time.
+It startedout of interest to see how celestial bodies behave when the gravitational laws are changed and
+at the same time dive more into interactive animations using python.
 
 ## Installation
+Runs on python 3.x
 Used packages:
-matplotlib
+pygame
 math
+numpy
 random
 string
 
@@ -16,8 +19,9 @@ Main branch:
 pygame
 
 
-Pygame branch:
+TK Inter:
 tkinter
+
 
 
 ## Branches
