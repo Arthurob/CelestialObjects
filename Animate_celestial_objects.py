@@ -12,9 +12,12 @@ Two abbriviations are often used to reduce lengthy variables:
 # TODO: React to sound(chaning paraeters)
 # FIXME: Zoom not woring with moving canvas
 
+# Import build-in modlues
 import sys
 import traceback
 import math
+
+# Import third party modules
 import numpy as np
 import pygame
 # import pygame_menu
@@ -22,6 +25,8 @@ import pygame
 from pygame import gfxdraw
 # from pygame_widgets.slider import Slider
 # from pygame_widgets.textbox import TextBox
+
+#Import local modules
 import celestialobject as co
 
 
@@ -461,3 +466,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+else:
+   print("File  executed when imported")
