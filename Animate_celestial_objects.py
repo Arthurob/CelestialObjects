@@ -449,11 +449,15 @@ class AnimateCelestialobjects():
                 print("planet: "  + planet.name + " will be removed")
                 self.celestialobjects.remove(planet)
 
-try:
-    animation = AnimateCelestialobjects()
-except:
-    print("Unexpected error:", sys.exc_info())
-    print(traceback.format_exc())
-    pygame.quit()
-    sys.exit()
-    raise
+def main():
+    try:
+        animation = AnimateCelestialobjects()
+    except:
+        print("Unexpected error:", sys.exc_info())
+        print(traceback.format_exc())
+        pygame.quit()
+        sys.exit()
+        raise
+
+if __name__ == "__main__":
+    main()
