@@ -68,10 +68,10 @@ class Zoom():
         self.step_factor = step_factor
         self.factor = 1
         self.factor_prev = 1
-        self.position = np.zeros((2,))
-        self.position_prev = np.zeros((2,))
-        self.position_co_frame = np.zeros((2,))
-        self.position_prev_co_frame = np.zeros((2,))
+        self.position = [0, 0]
+        self.position_prev = [0, 0]
+        self.position_co_frame = [0, 0]
+        self.position_prev_co_frame = [0, 0]
 
     def update_parameters(self, position, direction):
         """
@@ -94,9 +94,10 @@ class Zoom():
         self.position_prev_co_frame = self.position_co_frame
         self.position = position
         self.factor *= (1 + direction * self.step_factor)
-        self.position_co_frame = (
-            self.position - self.position_prev
-        )/self.factor_prev + self.position_prev_co_frame
+        self.position_co_frame = co.add(
+            co.div(co.sub(self.position, self.position_prev), self.factor_prev),
+            self.position_prev_co_frame
+        )
 
     def get_zoomed_coordinate(self, coordinate):
         """
@@ -116,9 +117,9 @@ class Zoom():
             Object reference space.
 
         """
-        zoomed_coordinate = (
-            self.factor * (coordinate - self.position_co_frame)
-            + self.position
+        zoomed_coordinate = co.add(
+           co.mul(self.factor, co.sub(coordinate, self.position_co_frame)),
+           self.position
         )
         return zoomed_coordinate
 
@@ -165,8 +166,8 @@ class AnimateCelestialobjects():
         self.counter = 0
         # zoom
         self.zoom = Zoom()
-        self.origin = np.zeros((2,))
-        self.move = np.zeros((2,))
+        self.origin = [0, 0]
+        self.move = [0, 0]
         self.do_draw_tails = True
         self.do_draw_arrows = True
         self.do_collide = True
@@ -174,8 +175,8 @@ class AnimateCelestialobjects():
         self.alpha = 2
         self.delta_t = 1
         self.delay = 0
-        self.correction_velocity = np.zeros((2,))
-        self.correction_acceleration = np.zeros((2,))
+        self.correction_velocity = [0, 0]
+        self.correction_acceleration = [0, 0]
         self.limits = 10000
         # self.controlsmenu = ControlsMenu()
 
@@ -295,19 +296,11 @@ class AnimateCelestialobjects():
         # shaped_planets = co.create_celestial_objects_in_geometric_shape(
         #     np.array([0,0]), 500, 2, 5, 200, 'purple')
         shaped_planets_1 = co.create_celestial_objects_in_geometric_shape(
-            center=self.center,
-            length=500,
-            velocity_perpundicular=3,
-            n_sides=5,
-            mass=100,
-            color='purple')
+            center=self.center, length=500,  velocity_perpundicular=3,
+            n_sides=5,  mass=100, color='purple')
         shaped_planets_2 = co.create_celestial_objects_in_geometric_shape(
-            center=self.center,
-            length=1000,
-            velocity_perpundicular=-4,
-            n_sides=10,
-            mass=50,
-            color='white')
+            center=self.center,  length=1000,  velocity_perpundicular=-4,
+            n_sides=10, mass=50, color='white')
         self.celestialobjects = self.celestialobjects + \
             shaped_planets_1 + shaped_planets_2
         self.coordsCOM = co.get_center_of_mass_coordinates(
@@ -396,10 +389,8 @@ class AnimateCelestialobjects():
                 self.draw_tail(planet)
 
         for planet in self.celestialobjects:
-            corrected_position = (
-                self.zoom.get_zoomed_coordinate(planet.position)
-                + self.origin
-            )
+            corrected_position = co.add(
+                self.zoom.get_zoomed_coordinate(planet.position), self.origin)
             self.draw_celestialobjects(planet, corrected_position)
             if self.do_draw_arrows:
                 self.draw_arrows(planet, corrected_position)
@@ -422,13 +413,19 @@ class AnimateCelestialobjects():
 
     def draw_arrows(self, planet, corrected_position):
         self.draw_arrow(
-            pygame.Color(planet.color),
-            corrected_position,
-            corrected_position +
-            (planet.force/planet.mass - self.correction_acceleration)*100
-        )
+            pygame.Color(planet.color), corrected_position,
+            co.add(
+                corrected_position, co.mul(100, co.sub(
+                    planet.acceleration, self.correction_acceleration))
+                )
+            )
         self.draw_arrow(pygame.Color(planet.color), corrected_position,
-                        corrected_position+(planet.velocity - self.correction_velocity)*10)
+                        co.add(corrected_position,
+                               co.mul(10, co.sub(
+                                   planet.velocity, self.correction_velocity)
+                                   )
+                               )
+                        )
 
     def draw_celestialobjects(self, planet, corrected_position):
         color = pygame.Color(planet.color)
@@ -444,8 +441,7 @@ class AnimateCelestialobjects():
         for i, pos in enumerate(planet.tail):
             color_rgb.a = int(255 * i / length_tail)
             self.animation_surface.fill(color_rgb, (
-                self.zoom.get_zoomed_coordinate(pos)
-                + self.origin,
+                co.add(self.zoom.get_zoomed_coordinate(pos), self.origin),
                 (1, 1))
             )
 

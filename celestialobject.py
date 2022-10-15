@@ -4,7 +4,7 @@ Created on Sun Oct 25 15:26:10 2020
 
 @author: Arthur
 """
-import numpy as np
+
 import random
 import string
 import math
@@ -28,8 +28,8 @@ class Trajectory:
             the eccentricity, e,  of the orbit: 0: circular, 0<e<1: elliptical
             e>1: hyperbolic
         angle: numerical
-            angle between the orbeting celestial objct and the semi-major axis of
-            the trajectory
+            angle between the orbeting celestial objct and the semi-major axis
+            of the trajectory
     """
 
     def __init__(self, orbited_celestial_objects, G,
@@ -76,8 +76,8 @@ class Celestialobject():
     """
 
     def __init__(self, mass: float, color: str,
-                 position: np.array,
-                 velocity: np.array = np.zeros((2,)),
+                 position: list,
+                 velocity: list = [0, 0],
                  name: str = '', radius: float = 0):
         """
        Initiates the Celstial Object
@@ -105,10 +105,10 @@ class Celestialobject():
             self.radius = 3*max(mass**(1/3), 1)
         else:
             self.radius = radius
-        self.position = np.array(position).astype(np.float64)
-        self.velocity = np.array(velocity).astype(np.float64)
-        self.force = np.zeros((2,))
-        self.acceleration = np.zeros((2,))
+        self.position = position
+        self.velocity = velocity
+        self.force = [0, 0]
+        self.acceleration = [0, 0]
         self.color = color
         if name == '':
             letters = string.ascii_lowercase
@@ -154,14 +154,14 @@ class Celestialobject():
         """
         celestialobject = Celestialobject(mass, color,
                                           position,
-                                          np.zeros((2,)),
+                                          [0, 0],
                                           name, radius)
         velocity = celestialobject.get_velocity_for_trajectory(trajectory)
         celestialobject.velocity = velocity
         return celestialobject
 
     def get_velocity_for_trajectory(self, trajectory: Trajectory):
-        velocity = np.zeros((2,))
+        velocity = [0, 0]
         if trajectory.eccentricity == -1:
             print("Not a possible eccentricty value")
         elif trajectory.eccentricity == 0:
@@ -195,11 +195,12 @@ class Celestialobject():
         v_trajectory_radial = math.sqrt(
             trajectory.G * m_cm / norm(r)
         )
-        v_trajectory_cartesian = (
-            v_trajectory_radial * trajectory.direction
-            * np.array([-math.sin(theta), math.cos(theta)])
-        )
-        v_total = v_cm + v_trajectory_cartesian
+        v_trajectory_cartesian = mul(
+            v_trajectory_radial * trajectory.direction,
+            [-math.sin(theta), math.cos(theta)]
+            )
+
+        v_total = add(v_cm, v_trajectory_cartesian)
         return v_total
 
     def get_velocity_noncircular_trajectory(self, trajectory: Trajectory):
@@ -230,10 +231,10 @@ class Celestialobject():
         v_r = v_factor * e * math.sin(theta)
         v_theta = v_factor * alpha
         phi = math.atan2(r[1], r[0])
-        e_r = np.array([np.cos(phi), np.sin(phi)])
-        e_phi = np.array([-np.sin(phi), np.cos(phi)])
-        v_vec = v_r * e_r + v_theta * e_phi
-        velocity = v_cm + v_vec
+        e_r = [math.cos(phi), math.sin(phi)]
+        e_phi = [-math.sin(phi), math.cos(phi)]
+        v_vec = add(mul(v_r, e_r), mul(v_theta, e_phi))
+        velocity = add(v_cm, v_vec)
         return velocity
 
     def get_parameters_trajectory(self, trajectory: Trajectory):
@@ -258,33 +259,32 @@ class Celestialobject():
             DESCRIPTION.
 
         """
-        poistion_center_of_mass = np.array(
-            get_center_of_mass_coordinates(
+        poistion_center_of_mass = get_center_of_mass_coordinates(
                 trajectory.orbited_celestial_objects)
-        )
-        velocity_center_of_mass = np.array(
-            get_center_of_mass_velocity(trajectory.orbited_celestial_objects)
-        )
+
+        velocity_center_of_mass = get_center_of_mass_velocity(
+            trajectory.orbited_celestial_objects)
+
         mass_orbited_celestial_objects = sum(
             [planet.mass for planet in trajectory.orbited_celestial_objects]
         )
-        positiondiff_coobject_com = self.position - poistion_center_of_mass
+        positiondiff_coobject_com = sub(self.position, poistion_center_of_mass)
         return (poistion_center_of_mass, velocity_center_of_mass,
                 mass_orbited_celestial_objects, positiondiff_coobject_com)
 
     def reset_force(self):
-        self.force = np.zeros((2,))
+        self.force = [0, 0]
 
     def update_tail(self, tail_length=1000):
-        self.tail.append(np.copy(self.position))
+        self.tail.append(self.position)
         if len(self.tail) > tail_length:
             del self.tail[0]
 
-    def get_acceleration(self, correction=np.zeros((2,))):
-        return norm(self.acceleration + correction)
+    def get_acceleration(self, correction=[0, 0]):
+        return norm(add(self.acceleration, correction))
 
-    def get_speed(self, correction=np.zeros((2,))):
-        return norm(self.velocity + correction)
+    def get_speed(self, correction=[0, 0]):
+        return norm(add(self.velocity, correction))
 
     def get_phi(self):
         return angle_between(self.acceleration, self.velocity)
@@ -304,9 +304,9 @@ class Celestialobject():
         None.
 
         """
-        self.acceleration = self.force / self.mass
-        self.velocity += self.acceleration * delta_t
-        self.position += self.velocity * delta_t
+        self.acceleration = div(self.force, self.mass)
+        self.velocity = add(self.velocity, mul(delta_t, self.acceleration))
+        self.position = add(self.position, mul(delta_t, self.velocity))
         if self.keep_history:
             self.speed_history.append(self.get_speed())
             self.acceleration_history.append(self.get_acceleration())
@@ -330,67 +330,71 @@ def substract_centerofmass_velocity(celestialobjects):
     """
     v_cm = get_center_of_mass_velocity(celestialobjects)
     for celestialobject in celestialobjects:
-        celestialobject.velocity -= v_cm
+        celestialobject.velocity = sub(celestialobject.velocity, v_cm)
 
 
 def set_forces_2celestialobjects(
         celestialobject_1: Celestialobject,
         celestialobject_2: Celestialobject,
-        G, delta_t, alpha=2,
-        collisionsOn=True,
-        enterIsPossible=False):
-    r_21 = celestialobject_2.position - celestialobject_1.position
+        G, delta_t,
+        alpha=2, collisionsOn=True, enterIsPossible=False):
+    r_21 = sub(celestialobject_2.position, celestialobject_1.position)
     r_21_norm = norm(r_21)
     R_12 = celestialobject_1.radius + celestialobject_2.radius
     collison = False
     # collisions
     if collisionsOn and r_21_norm <= R_12:
         collison = True
-        handle_collision(celestialobject_1,
-                         celestialobject_2,
-                         r_21, r_21_norm, R_12,
-                         delta_t, enterIsPossible)
-        r_21 = celestialobject_2.position - celestialobject_1.position
+        handle_collision(celestialobject_1, celestialobject_2,
+                         r_21, r_21_norm, R_12, delta_t, enterIsPossible)
+        r_21 = sub(celestialobject_2.position, celestialobject_1.position)
         r_21_norm = norm(r_21)
-    F_12 = G * celestialobject_1.mass * \
-        celestialobject_2.mass / r_21_norm**(alpha+1) * r_21
-    celestialobject_1.force = celestialobject_1.force + F_12
-    celestialobject_2.force = celestialobject_2.force - F_12
+    F_12 = mul(
+        G * celestialobject_1.mass * celestialobject_2.mass / r_21_norm**(alpha+1),
+        r_21)
+    celestialobject_1.force = add(celestialobject_1.force, F_12)
+    celestialobject_2.force = add(celestialobject_2.force, F_12)
     return collison
 
 
 def handle_collision(celestialobject_1, celestialobject_2, r_21, r_21_norm,
                      R_12, delta_t, enterIsPossible):
-    v_12 = celestialobject_1.velocity - celestialobject_2.velocity
-    r_21_in_v_12 = np.dot(r_21, v_12)
-    v_12_2 = np.dot(v_12, v_12)
+    v_12=sub(celestialobject_1.velocity, celestialobject_2.velocity)
+    r_21_in_v_12=inner(r_21, v_12)
+    v_12_2=inner(v_12, v_12)
     if not enterIsPossible:
         # calculate time where collision happened
-        t_c = (math.sqrt(r_21_in_v_12**2 - v_12_2 *
+        t_c=(math.sqrt(r_21_in_v_12**2 - v_12_2 *
                (r_21_norm**2 - R_12**2)) - r_21_in_v_12) / v_12_2
         # Set positions at where the collison happened
-        celestialobject_1.position -= t_c * celestialobject_1.velocity
-        celestialobject_2.position -= t_c * celestialobject_2.velocity
-        r_21 = celestialobject_2.position - celestialobject_1.position
-        r_21_norm = norm(r_21)
-        r_21_in_v_12 = np.dot(r_21, v_12)
+        celestialobject_1.position=sub(
+            celestialobject_1.position, mul(t_c, celestialobject_1.velocity)
+            )
+        celestialobject_2.position=sub(
+            celestialobject_2.position, mul(t_c, celestialobject_2.velocity)
+            )
+        r_21=sub(celestialobject_2.position, celestialobject_1.position)
+        r_21_norm=norm(r_21)
+        r_21_in_v_12=inner(r_21, v_12)
     set_state_after_collision(
         celestialobject_1, celestialobject_2, r_21, r_21_norm, r_21_in_v_12)
 
     if not enterIsPossible:
         # Adjust positions to "current time"
-        celestialobject_1.position += abs(delta_t - t_c) * \
-            celestialobject_1.velocity
-        celestialobject_2.position += abs(delta_t - t_c) * \
-            celestialobject_2.velocity
+        celestialobject_1.position=add(
+            celestialobject_1.position,
+            mul(abs(delta_t - t_c), celestialobject_1.velocity)
+            )
+        celestialobject_2.position=add(
+            celestialobject_2.position,
+            mul(abs(delta_t - t_c), celestialobject_2.velocity)
+            )
 
 
 def set_state_after_collision(
         celestialobject_1: Celestialobject,
         celestialobject_2: Celestialobject,
-        r_21,
-        r_21_norm,
-        r_21_in_v_12):
+        r_21, r_21_norm, r_21_in_v_12):
     """
 
     Parameters
@@ -411,22 +415,28 @@ def set_state_after_collision(
     None.
 
     """
-    vector = 2*r_21_in_v_12/(
-        (celestialobject_1.mass + celestialobject_2.mass) * r_21_norm**2
-    ) * r_21
-    celestialobject_1.velocity -= celestialobject_2.mass*vector
-    celestialobject_2.velocity += celestialobject_1.mass*vector
+    vector=mul(
+        2 * r_21_in_v_12/((celestialobject_1.mass + celestialobject_2.mass) * r_21_norm**2), 
+    r_21)
+    celestialobject_1.velocity=sub(
+        celestialobject_1.velocity, mul(celestialobject_2.mass, vector)
+        )
+    celestialobject_2.velocity=add(
+        celestialobject_2.velocity, mul(celestialobject_2.mass, vector)
+        )
 
 
-def set_new_state(celestialobjects, G, alpha, delta_t, collisionsOn=True, enterIsPossible=False):
+def set_new_state(celestialobjects, G, alpha, delta_t,
+                  collisionsOn=True, enterIsPossible=False):
     for planet in celestialobjects:
         planet.reset_force()
 
     if len(celestialobjects) > 1:
         for i, planet1 in enumerate(celestialobjects[:-1]):
             for planet2 in celestialobjects[i+1::]:
-                collision = set_forces_2celestialobjects(
-                    planet1, planet2, G, delta_t, alpha, collisionsOn, enterIsPossible)
+                collision=set_forces_2celestialobjects(
+                    planet1, planet2, G, delta_t, alpha,
+                    collisionsOn, enterIsPossible)
 
     for planet in celestialobjects:
         planet.new_state_planet(delta_t)
@@ -434,54 +444,72 @@ def set_new_state(celestialobjects, G, alpha, delta_t, collisionsOn=True, enterI
     return collision
 
 
+
+def add(v1, v2):
+    return [v1[0] + v2[0], v1[1] + v2[1]]
+
+def sub(v1, v2):
+    return [v1[0] - v2[0], v1[1] - v2[1]]
+
+def mul(factor, v):
+    return [factor * v[0], factor * v[1]]
+
+def div(v, factor, epsilon=1e-15):
+    if abs(factor) < epsilon:
+        pass
+    return mul(1/factor, v)
+
+def inner(v1, v2):
+    return v1[0] * v2[0] + v1[1] * v2[1]
+
 def unit_vector(vector):
-    return vector / norm(vector)
+    return div(vector, norm(vector))
 
 
 def angle_between(v1, v2):
-    v1_u = unit_vector(v1)
-    v2_u = unit_vector(v2)
-    return np.arccos(np.inner(v1_u, v2_u))
+    v1_u=unit_vector(v1)
+    v2_u=unit_vector(v2)
+    return math.acos(inner(v1_u, v2_u))
 
 
 def norm(v):
-    return np.sqrt(np.inner(v, v))  # Faster than np.linalg.norm(x)
+    return math.sqrt(inner(v, v))
+
 
 
 def get_center_of_mass_coordinates(celestialobjects):
-    return (
-        sum([planet.mass * planet.position for planet in celestialobjects])
-        / sum([planet.mass for planet in celestialobjects])
-    ) 
+    masses_position=[0, 0]
+    total_mass=0
+    for planet in celestialobjects:
+        masses_position=add(masses_position, mul(planet.mass, planet.position))
+        total_mass += planet.mass
+    return div(masses_position, total_mass)
 
 
 def get_center_of_mass_velocity(celestialobjects):
-    return (
-        sum([planet.mass*planet.velocity for planet in celestialobjects])
-        / sum([planet.mass for planet in celestialobjects])
-    )
+    masses_velocity=[0, 0]
+    total_mass=0
+    for planet in celestialobjects:
+        masses_velocity=add(masses_velocity, mul(planet.mass, planet.velocity))
+        total_mass += planet.mass
+    return div(masses_velocity, total_mass)
 
 
-def create_celestial_objects_in_geometric_shape(center,
-                                                length,
+
+def create_celestial_objects_in_geometric_shape(center, length,
                                                 velocity_perpundicular,
-                                                n_sides,
-                                                mass,
-                                                color):
+                                                n_sides, mass, color):
     celestial_objects = []
     delta_angle = 2 * math.pi / n_sides
     for i in range(n_sides):
-        angle = i * delta_angle
-        position = center + length * np.array(
-            [math.cos(angle), math.sin(angle)])
-        velocity = velocity_perpundicular * np.array(
+        angle=i * delta_angle
+        position=add(
+            center, mul(length, [math.cos(angle), math.sin(angle)])
+            )
+        velocity=mul(velocity_perpundicular,
             [-math.sin(angle), math.cos(angle)])
-        celestial_object = Celestialobject(
-            mass,
-            color,
-            position,
-            velocity,
-            'celestial_object1'
+        celestial_object=Celestialobject(
+            mass, color, position, velocity, 'celestial_object1'
         )
         celestial_objects.append(celestial_object)
     return celestial_objects
